@@ -110,7 +110,13 @@ public:
     //
     // Returns true if any clients' relative volumes were changed.
     bool                                SetClientsRelativeVolumes(const CACFArray inAppVolumes);
-    
+
+    // Set output device for a client by bundle ID
+    bool                                SetClientOutputDeviceUID(const CACFString& inBundleID, const CACFString& inOutputDeviceUID);
+
+    // Get all client output device mappings as CFDictionary
+    CFDictionaryRef                     CopyClientOutputDeviceMappings() const;
+
 private:
     AudioObjectID                       mOwnerDeviceID;
     BGM_ClientMap                       mClientMap;

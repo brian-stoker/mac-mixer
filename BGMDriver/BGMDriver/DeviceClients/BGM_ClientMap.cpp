@@ -231,6 +231,29 @@ CACFArray   BGM_ClientMap::CopyClientRelativeVolumesAsAppVolumes(CAVolumeCurve i
     return theAppVolumes;
 }
 
+CFDictionaryRef BGM_ClientMap::CopyClientOutputDeviceMappings() const
+{
+    // Since this is a read-only, non-real-time operation, we can read from the shadow maps to avoid
+    // locking the main maps.
+    CAMutex::Locker theShadowMapsLocker(mShadowMapsMutex);
+
+    // Create a mutable dictionary to hold the mappings
+    CFMutableDictionaryRef theDict = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+
+    for(const auto& theClientEntry : mClientMapShadow)
+    {
+        const BGM_Client& theClient = theClientEntry.second;
+
+        // Only include clients with valid bundle IDs and output device UIDs
+        if(theClient.mBundleID.IsValid() && theClient.mOutputDeviceUID.IsValid())
+        {
+            CFDictionarySetValue(theDict, theClient.mBundleID.GetCFString(), theClient.mOutputDeviceUID.GetCFString());
+        }
+    }
+
+    return theDict;
+}
+
 void    BGM_ClientMap::CopyClientIntoAppVolumesArray(BGM_Client inClient, CAVolumeCurve inVolumeCurve, CACFArray& ioAppVolumes) const
 {
     // Only include clients set to a non-default volume, pan, or output device
@@ -410,12 +433,36 @@ bool BGM_ClientMap::SetClientsPanPosition(CACFString searchKey, SInt32 inPanPosi
             }
         }
     };
-    
+
     theSetPansInShadowMapsFunc();
     SwapInShadowMaps();
     theSetPansInShadowMapsFunc();
-    
+
     return didChangePanPosition;
+}
+
+bool BGM_ClientMap::SetClientsOutputDeviceUID(CACFString searchKey, CACFString inOutputDeviceUID)
+{
+    bool didChangeOutputDevice = false;
+
+    CAMutex::Locker theShadowMapsLocker(mShadowMapsMutex);
+
+    auto theSetOutputDeviceInShadowMapsFunc = [&] {
+        // Look up the clients for the key and update their output device UIDs
+        auto theClients = GetClients(searchKey);
+        if(theClients != nullptr) {
+            for(auto theClient: *theClients) {
+                theClient->mOutputDeviceUID = inOutputDeviceUID;
+                didChangeOutputDevice = true;
+            }
+        }
+    };
+
+    theSetOutputDeviceInShadowMapsFunc();
+    SwapInShadowMaps();
+    theSetOutputDeviceInShadowMapsFunc();
+
+    return didChangeOutputDevice;
 }
 
 void    BGM_ClientMap::UpdateClientIOStateNonRT(UInt32 inClientID, bool inDoingIO)

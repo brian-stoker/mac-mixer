@@ -113,7 +113,10 @@ public:
     // kAudioDeviceCustomPropertyAppVolumes. (Except that CACFArray and CACFDictionary are used instead
     // of unwrapped CFArray and CFDictionary refs.)
     CACFArray                                           CopyClientRelativeVolumesAsAppVolumes(CAVolumeCurve inVolumeCurve) const;
-    
+
+    // Copies the current client output device mappings into a CFDictionary mapping bundle IDs to output device UIDs.
+    CFDictionaryRef                                     CopyClientOutputDeviceMappings() const;
+
 private:
     void                                                CopyClientIntoAppVolumesArray(BGM_Client inClient, CAVolumeCurve inVolumeCurve, CACFArray& ioAppVolumes) const;
     
@@ -139,7 +142,11 @@ public:
     // Returns true if a client for bundle ID inAppBundleID was found and its pan position changed.
     // inAppBundleID may contain a null CFStringRef, in which case it returns false.
     bool                                                SetClientsPanPosition(CACFString inAppBundleID, SInt32 inPanPosition);
-    
+
+    // Returns true if a client for bundle ID inAppBundleID was found and its output device UID changed.
+    // inAppBundleID may contain a null CFStringRef, in which case it returns false.
+    bool                                                SetClientsOutputDeviceUID(CACFString inAppBundleID, CACFString inOutputDeviceUID);
+
     void                                                StartIONonRT(UInt32 inClientID) { UpdateClientIOStateNonRT(inClientID, true); }
     void                                                StopIONonRT(UInt32 inClientID) { UpdateClientIOStateNonRT(inClientID, false); }
     

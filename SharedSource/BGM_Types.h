@@ -124,7 +124,9 @@ enum
     kAudioDeviceCustomPropertyEnabledOutputControls                   = 'bgct',
     // A CFArray of CFDictionaries that each contain an app's pid, bundle ID and output device UID.
     // Similar to kAudioDeviceCustomPropertyAppVolumes but for output device assignments.
-    kAudioDeviceCustomPropertyAppOutputDevices                        = 'aout'
+    kAudioDeviceCustomPropertyAppOutputDevices                        = 'aout',
+    // A CFDictionary mapping client IDs (CFNumber) to their output device UIDs (CFString).
+    kAudioDeviceCustomPropertyClientOutputDevices                     = 'coud'
 };
 
 // The number of silent/audible frames before BGMDriver will change kAudioDeviceCustomPropertyDeviceAudibleState
@@ -222,6 +224,12 @@ static const AudioObjectPropertyAddress kBGMEnabledOutputControlsAddress = {
 
 static const AudioObjectPropertyAddress kBGMAppOutputDevicesAddress = {
     kAudioDeviceCustomPropertyAppOutputDevices,
+    kAudioObjectPropertyScopeGlobal,
+    kAudioObjectPropertyElementMaster
+};
+
+static const AudioObjectPropertyAddress kBGMClientOutputDevicesAddress = {
+    kAudioDeviceCustomPropertyClientOutputDevices,
     kAudioObjectPropertyScopeGlobal,
     kAudioObjectPropertyElementMaster
 };

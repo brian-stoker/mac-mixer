@@ -329,6 +329,7 @@ bool	BGM_Device::Device_HasProperty(AudioObjectID inObjectID, pid_t inClientPID,
         case kAudioDeviceCustomPropertyDeviceIsRunningSomewhereOtherThanBGMApp:
         case kAudioDeviceCustomPropertyAppVolumes:
         case kAudioDeviceCustomPropertyEnabledOutputControls:
+        case kAudioDeviceCustomPropertyClientOutputDevices:
 			theAnswer = true;
 			break;
 			
@@ -376,6 +377,7 @@ bool	BGM_Device::Device_IsPropertySettable(AudioObjectID inObjectID, pid_t inCli
         case kAudioDeviceCustomPropertyMusicPlayerBundleID:
         case kAudioDeviceCustomPropertyAppVolumes:
         case kAudioDeviceCustomPropertyEnabledOutputControls:
+        case kAudioDeviceCustomPropertyClientOutputDevices:
 			theAnswer = true;
 			break;
 		
@@ -462,7 +464,7 @@ UInt32	BGM_Device::Device_GetPropertyDataSize(AudioObjectID inObjectID, pid_t in
             break;
             
         case kAudioObjectPropertyCustomPropertyInfoList:
-            theAnswer = sizeof(AudioServerPlugInCustomPropertyInfo) * 6;
+            theAnswer = sizeof(AudioServerPlugInCustomPropertyInfo) * 7;
             break;
             
         case kAudioDeviceCustomPropertyDeviceAudibleState:
@@ -488,7 +490,11 @@ UInt32	BGM_Device::Device_GetPropertyDataSize(AudioObjectID inObjectID, pid_t in
         case kAudioDeviceCustomPropertyEnabledOutputControls:
             theAnswer = sizeof(CFArrayRef);
             break;
-		
+
+        case kAudioDeviceCustomPropertyClientOutputDevices:
+            theAnswer = sizeof(CFDictionaryRef);
+            break;
+
 		default:
 			theAnswer = BGM_AbstractDevice::GetPropertyDataSize(inObjectID, inClientPID, inAddress, inQualifierDataSize, inQualifierData);
 			break;
@@ -889,9 +895,9 @@ void	BGM_Device::Device_GetPropertyData(AudioObjectID inObjectID, pid_t inClient
             theNumberItemsToFetch = inDataSize / sizeof(AudioServerPlugInCustomPropertyInfo);
             
             //	clamp it to the number of items we have
-            if(theNumberItemsToFetch > 6)
+            if(theNumberItemsToFetch > 7)
             {
-                theNumberItemsToFetch = 6;
+                theNumberItemsToFetch = 7;
             }
             
             if(theNumberItemsToFetch > 0)
@@ -929,6 +935,12 @@ void	BGM_Device::Device_GetPropertyData(AudioObjectID inObjectID, pid_t inClient
                 ((AudioServerPlugInCustomPropertyInfo*)outData)[5].mSelector = kAudioDeviceCustomPropertyEnabledOutputControls;
                 ((AudioServerPlugInCustomPropertyInfo*)outData)[5].mPropertyDataType = kAudioServerPlugInCustomPropertyDataTypeCFPropertyList;
                 ((AudioServerPlugInCustomPropertyInfo*)outData)[5].mQualifierDataType = kAudioServerPlugInCustomPropertyDataTypeNone;
+            }
+            if(theNumberItemsToFetch > 6)
+            {
+                ((AudioServerPlugInCustomPropertyInfo*)outData)[6].mSelector = kAudioDeviceCustomPropertyClientOutputDevices;
+                ((AudioServerPlugInCustomPropertyInfo*)outData)[6].mPropertyDataType = kAudioServerPlugInCustomPropertyDataTypeCFPropertyList;
+                ((AudioServerPlugInCustomPropertyInfo*)outData)[6].mQualifierDataType = kAudioServerPlugInCustomPropertyDataTypeNone;
             }
 
             outDataSize = theNumberItemsToFetch * sizeof(AudioServerPlugInCustomPropertyInfo);
@@ -993,6 +1005,15 @@ void	BGM_Device::Device_GetPropertyData(AudioObjectID inObjectID, pid_t inClient
 
                 *reinterpret_cast<CFArrayRef*>(outData) = theEnabledControls.CopyCFArray();
                 outDataSize = sizeof(CFArrayRef);
+            }
+            break;
+
+        case kAudioDeviceCustomPropertyClientOutputDevices:
+            {
+                ThrowIf(inDataSize < sizeof(CFDictionaryRef), CAException(kAudioHardwareBadPropertySizeError), "BGM_Device::Device_GetPropertyData: not enough space for the return value of kAudioDeviceCustomPropertyClientOutputDevices for the device");
+                CAMutex::Locker theStateLocker(mStateMutex);
+                *reinterpret_cast<CFDictionaryRef*>(outData) = mClients.CopyClientOutputDeviceMappings();
+                outDataSize = sizeof(CFDictionaryRef);
             }
             break;
 
@@ -1229,6 +1250,65 @@ void	BGM_Device::Device_SetPropertyData(AudioObjectID inObjectID, pid_t inClient
                         "kAudioDeviceCustomPropertyEnabledOutputControls");
 
                 RequestEnabledControls(theVolumeControlEnabled, theMuteControlEnabled);
+            }
+            break;
+
+        case kAudioDeviceCustomPropertyClientOutputDevices:
+            {
+                ThrowIf(inDataSize < sizeof(CFDictionaryRef), CAException(kAudioHardwareBadPropertySizeError), "BGM_Device::Device_SetPropertyData: wrong size for the data for kAudioDeviceCustomPropertyClientOutputDevices");
+
+                CFDictionaryRef dictRef = *reinterpret_cast<const CFDictionaryRef*>(inData);
+
+                ThrowIfNULL(dictRef, CAException(kAudioHardwareIllegalOperationError), "BGM_Device::Device_SetPropertyData: kAudioDeviceCustomPropertyClientOutputDevices cannot be set to NULL");
+                ThrowIf(CFGetTypeID(dictRef) != CFDictionaryGetTypeID(), CAException(kAudioHardwareIllegalOperationError), "BGM_Device::Device_SetPropertyData: CFType given for kAudioDeviceCustomPropertyClientOutputDevices was not a CFDictionary");
+
+                CACFDictionary theDict(dictRef, false);
+
+                bool propertyWasChanged = false;
+
+                CAMutex::Locker theStateLocker(mStateMutex);
+
+                // Iterate over the dictionary entries
+                CFIndex theCount = CFDictionaryGetCount(dictRef);
+                if(theCount > 0)
+                {
+                    CFTypeRef* theKeys = new CFTypeRef[theCount];
+                    CFTypeRef* theValues = new CFTypeRef[theCount];
+                    CFDictionaryGetKeysAndValues(dictRef, theKeys, theValues);
+
+                    for(CFIndex i = 0; i < theCount; i++)
+                    {
+                        // Validate key is a CFString (bundle ID)
+                        ThrowIf(CFGetTypeID(theKeys[i]) != CFStringGetTypeID(),
+                                CAException(kAudioHardwareIllegalOperationError),
+                                "BGM_Device::Device_SetPropertyData: Key in kAudioDeviceCustomPropertyClientOutputDevices dictionary is not a CFString");
+
+                        // Validate value is a CFString (output device UID)
+                        ThrowIf(CFGetTypeID(theValues[i]) != CFStringGetTypeID(),
+                                CAException(kAudioHardwareIllegalOperationError),
+                                "BGM_Device::Device_SetPropertyData: Value in kAudioDeviceCustomPropertyClientOutputDevices dictionary is not a CFString");
+
+                        CACFString theBundleID(static_cast<CFStringRef>(theKeys[i]), false);
+                        CACFString theOutputDeviceUID(static_cast<CFStringRef>(theValues[i]), false);
+
+                        if(mClients.SetClientOutputDeviceUID(theBundleID, theOutputDeviceUID))
+                        {
+                            propertyWasChanged = true;
+                        }
+                    }
+
+                    delete[] theKeys;
+                    delete[] theValues;
+                }
+
+                if(propertyWasChanged)
+                {
+                    // Send notification
+                    CADispatchQueue::GetGlobalSerialQueue().Dispatch(false, ^{
+                        AudioObjectPropertyAddress theChangedProperties[] = { kBGMClientOutputDevicesAddress };
+                        BGM_PlugIn::Host_PropertiesChanged(inObjectID, 1, theChangedProperties);
+                    });
+                }
             }
             break;
 

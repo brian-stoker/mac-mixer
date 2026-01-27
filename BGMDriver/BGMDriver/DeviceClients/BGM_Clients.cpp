@@ -395,7 +395,28 @@ bool    BGM_Clients::SetClientsRelativeVolumes(const CACFArray inAppVolumes)
                 BGM_InvalidClientRelativeVolumeException(),
                 "BGM_Clients::SetClientsRelativeVolumes: No volume or pan position in request");
     }
-    
+
     return didChangeAppVolumes;
+}
+
+bool    BGM_Clients::SetClientOutputDeviceUID(const CACFString& inBundleID, const CACFString& inOutputDeviceUID)
+{
+    CAMutex::Locker theLocker(mMutex);
+
+    bool didChange = mClientMap.SetClientsOutputDeviceUID(inBundleID, inOutputDeviceUID);
+
+    if(didChange)
+    {
+        DebugMsg("BGM_Clients::SetClientOutputDeviceUID: Set output device %s for bundle ID %s",
+                 CFStringGetCStringPtr(inOutputDeviceUID.GetCFString(), kCFStringEncodingUTF8),
+                 CFStringGetCStringPtr(inBundleID.GetCFString(), kCFStringEncodingUTF8));
+    }
+
+    return didChange;
+}
+
+CFDictionaryRef BGM_Clients::CopyClientOutputDeviceMappings() const
+{
+    return mClientMap.CopyClientOutputDeviceMappings();
 }
 
