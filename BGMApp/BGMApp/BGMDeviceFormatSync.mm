@@ -81,8 +81,8 @@ bool    BGMDeviceFormatSync::IsDeviceCompatible(const BGMAudioDevice& inDevice,
     }
 
     // Get capabilities for the new device
-    auto newDeviceCaps = GetDeviceCapabilities(inDevice.GetObjectID());
-    if (!newDeviceCaps.has_value())
+    DeviceCapabilities newDeviceCaps;
+    if (!GetDeviceCapabilities(inDevice.GetObjectID(), newDeviceCaps))
     {
         if (outError)
         {
@@ -98,7 +98,7 @@ bool    BGMDeviceFormatSync::IsDeviceCompatible(const BGMAudioDevice& inDevice,
 
     // Get capabilities for all active devices
     std::vector<DeviceCapabilities> allCapabilities;
-    allCapabilities.push_back(newDeviceCaps.value());
+    allCapabilities.push_back(newDeviceCaps);
 
     for (NSNumber* deviceIDNum in inActiveDeviceIDs)
     {
@@ -110,10 +110,10 @@ bool    BGMDeviceFormatSync::IsDeviceCompatible(const BGMAudioDevice& inDevice,
             continue;
         }
 
-        auto caps = GetDeviceCapabilities(deviceID);
-        if (caps.has_value())
+        DeviceCapabilities caps;
+        if (GetDeviceCapabilities(deviceID, caps))
         {
-            allCapabilities.push_back(caps.value());
+            allCapabilities.push_back(caps);
         }
     }
 
@@ -165,11 +165,11 @@ bool    BGMDeviceFormatSync::SynchronizeFormatForActiveDevices(NSArray<NSNumber*
     for (NSNumber* deviceIDNum in inActiveDeviceIDs)
     {
         AudioObjectID deviceID = deviceIDNum.unsignedIntValue;
-        auto caps = GetDeviceCapabilities(deviceID);
+        DeviceCapabilities caps;
 
-        if (caps.has_value())
+        if (GetDeviceCapabilities(deviceID, caps))
         {
-            allCapabilities.push_back(caps.value());
+            allCapabilities.push_back(caps);
         }
         else
         {
@@ -296,17 +296,18 @@ Float64 BGMDeviceFormatSync::RecommendedSampleRateForDevices(NSArray<NSNumber*>*
         return 44100.0;  // Default sample rate
     }
 
-    BGMDeviceFormatSync tempSync(BGMAudioDevice(kAudioObjectUnknown));
+    BGMAudioDevice bgmDevice{kAudioObjectUnknown};
+    BGMDeviceFormatSync tempSync{bgmDevice};
     std::vector<DeviceCapabilities> allCapabilities;
 
     for (NSNumber* deviceIDNum in inDeviceIDs)
     {
         AudioObjectID deviceID = deviceIDNum.unsignedIntValue;
-        auto caps = tempSync.GetDeviceCapabilities(deviceID);
+        DeviceCapabilities caps;
 
-        if (caps.has_value())
+        if (tempSync.GetDeviceCapabilities(deviceID, caps))
         {
-            allCapabilities.push_back(caps.value());
+            allCapabilities.push_back(caps);
         }
     }
 
@@ -333,17 +334,18 @@ UInt32  BGMDeviceFormatSync::RecommendedBufferSizeForDevices(NSArray<NSNumber*>*
         return 512;  // Default buffer size
     }
 
-    BGMDeviceFormatSync tempSync(BGMAudioDevice(kAudioObjectUnknown));
+    BGMAudioDevice bgmDevice{kAudioObjectUnknown};
+    BGMDeviceFormatSync tempSync{bgmDevice};
     std::vector<DeviceCapabilities> allCapabilities;
 
     for (NSNumber* deviceIDNum in inDeviceIDs)
     {
         AudioObjectID deviceID = deviceIDNum.unsignedIntValue;
-        auto caps = tempSync.GetDeviceCapabilities(deviceID);
+        DeviceCapabilities caps;
 
-        if (caps.has_value())
+        if (tempSync.GetDeviceCapabilities(deviceID, caps))
         {
-            allCapabilities.push_back(caps.value());
+            allCapabilities.push_back(caps);
         }
     }
 
@@ -357,8 +359,7 @@ UInt32  BGMDeviceFormatSync::RecommendedBufferSizeForDevices(NSArray<NSNumber*>*
 
 #pragma mark Device Capabilities Cache
 
-std::optional<BGMDeviceFormatSync::DeviceCapabilities>
-    BGMDeviceFormatSync::GetDeviceCapabilities(AudioObjectID inDeviceID)
+bool BGMDeviceFormatSync::GetDeviceCapabilities(AudioObjectID inDeviceID, DeviceCapabilities& outCapabilities)
 {
     // Check cache first
     auto it = mCapabilitiesCache.find(inDeviceID);
@@ -376,7 +377,8 @@ std::optional<BGMDeviceFormatSync::DeviceCapabilities>
         {
             DebugMsg("BGMDeviceFormatSync::GetDeviceCapabilities: Using cached capabilities for device %u",
                     inDeviceID);
-            return it->second;
+            outCapabilities = it->second;
+            return true;
         }
         else
         {
@@ -398,7 +400,7 @@ std::optional<BGMDeviceFormatSync::DeviceCapabilities>
         if (!device.IsAlive())
         {
             LogWarning("BGMDeviceFormatSync::GetDeviceCapabilities: Device %u is not alive", inDeviceID);
-            return std::nullopt;
+            return false;
         }
 
         // Get current sample rate
@@ -443,14 +445,15 @@ std::optional<BGMDeviceFormatSync::DeviceCapabilities>
 
         // Cache the capabilities
         mCapabilitiesCache[inDeviceID] = caps;
+        outCapabilities = caps;
 
-        return caps;
+        return true;
     }
     catch (CAException e)
     {
         LogError("BGMDeviceFormatSync::GetDeviceCapabilities: Failed to get capabilities for device %u. Error: %d",
                 inDeviceID, e.GetError());
-        return std::nullopt;
+        return false;
     }
 }
 

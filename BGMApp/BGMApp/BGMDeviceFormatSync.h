@@ -36,7 +36,6 @@
 
 // STL Includes
 #include <map>
-#include <optional>
 #include <vector>
 
 // System Includes
@@ -147,9 +146,10 @@ private:
      Get cached capabilities for a device, or query and cache them if not present.
 
      @param inDeviceID The device to get capabilities for.
-     @return The device capabilities, or std::nullopt if the device is invalid.
+     @param outCapabilities Output parameter to receive the capabilities.
+     @return true if capabilities were retrieved successfully, false if device is invalid.
      */
-    std::optional<DeviceCapabilities> GetDeviceCapabilities(AudioObjectID inDeviceID);
+    bool GetDeviceCapabilities(AudioObjectID inDeviceID, DeviceCapabilities& outCapabilities);
 
     /*!
      Clear the capabilities cache. Should be called when devices are added/removed.

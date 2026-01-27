@@ -27,19 +27,15 @@
 #import "CADebugMacros.h"
 
 // System Includes
-#import <UserNotifications/UserNotifications.h>
+#import <AppKit/AppKit.h>
 
 
 #pragma clang assume_nonnull begin
 
-static NSString* const kNotificationCategoryID = @"com.bearisdriving.BGM.PerAppRouting";
 static NSString* const kNotificationIdentifierPrefix = @"com.bearisdriving.BGM.";
 
 
-@implementation BGMUserNotifications {
-    // Track whether we've requested notification permissions
-    BOOL hasRequestedPermissions;
-}
+@implementation BGMUserNotifications
 
 #pragma mark Initialization
 
@@ -57,52 +53,10 @@ static NSString* const kNotificationIdentifierPrefix = @"com.bearisdriving.BGM."
 {
     if ((self = [super init]))
     {
-        hasRequestedPermissions = NO;
-
-        // Request notification permissions on macOS 10.14+
-        if (@available(macOS 10.14, *))
-        {
-            [self requestNotificationPermissions];
-        }
-
         DebugMsg("BGMUserNotifications::init: Initialized user notifications");
     }
 
     return self;
-}
-
-#pragma mark Permissions
-
-- (void) requestNotificationPermissions API_AVAILABLE(macos(10.14))
-{
-    if (hasRequestedPermissions)
-    {
-        return;
-    }
-
-    UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
-
-    [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionSound)
-                          completionHandler:^(BOOL granted, NSError* __nullable error) {
-        if (error)
-        {
-            LogWarning("BGMUserNotifications::requestNotificationPermissions: "
-                      "Failed to request notification permissions: %s",
-                      [[error localizedDescription] UTF8String]);
-        }
-        else if (!granted)
-        {
-            DebugMsg("BGMUserNotifications::requestNotificationPermissions: "
-                    "User denied notification permissions");
-        }
-        else
-        {
-            DebugMsg("BGMUserNotifications::requestNotificationPermissions: "
-                    "Notification permissions granted");
-        }
-    }];
-
-    hasRequestedPermissions = YES;
 }
 
 #pragma mark Public Notification Methods
@@ -200,73 +154,21 @@ static NSString* const kNotificationIdentifierPrefix = @"com.bearisdriving.BGM."
 {
     NSString* fullIdentifier = [kNotificationIdentifierPrefix stringByAppendingString:identifier];
 
-    // Use modern API on macOS 10.14+
-    if (@available(macOS 10.14, *))
-    {
-        [self postModernNotification:fullIdentifier title:title body:body];
-    }
-    else
-    {
-        [self postLegacyNotification:fullIdentifier title:title body:body];
-    }
-}
-
-- (void) postModernNotification:(NSString*)identifier
-                          title:(NSString*)title
-                           body:(NSString*)body API_AVAILABLE(macos(10.14))
-{
-    UNMutableNotificationContent* content = [[UNMutableNotificationContent alloc] init];
-    content.title = title;
-    content.body = body;
-    content.sound = [UNNotificationSound defaultSound];
-    content.categoryIdentifier = kNotificationCategoryID;
-
-    // Create a time-based trigger (deliver immediately)
-    UNTimeIntervalNotificationTrigger* trigger =
-        [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:1 repeats:NO];
-
-    UNNotificationRequest* request =
-        [UNNotificationRequest requestWithIdentifier:identifier
-                                             content:content
-                                             trigger:trigger];
-
-    UNUserNotificationCenter* center = [UNUserNotificationCenter currentNotificationCenter];
-    [center addNotificationRequest:request
-             withCompletionHandler:^(NSError* __nullable error) {
-        if (error)
-        {
-            LogWarning("BGMUserNotifications::postModernNotification: "
-                      "Failed to post notification '%s': %s",
-                      [identifier UTF8String],
-                      [[error localizedDescription] UTF8String]);
-        }
-        else
-        {
-            DebugMsg("BGMUserNotifications::postModernNotification: "
-                    "Posted notification '%s'",
-                    [identifier UTF8String]);
-        }
-    }];
-}
-
-- (void) postLegacyNotification:(NSString*)identifier
-                          title:(NSString*)title
-                           body:(NSString*)body
-{
-    // Use deprecated NSUserNotificationCenter for macOS < 10.14
+    // Use NSUserNotificationCenter (available on all supported macOS versions)
+    // Note: This API was deprecated in macOS 10.14, but still works
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
     NSUserNotification* notification = [[NSUserNotification alloc] init];
     notification.title = title;
     notification.informativeText = body;
     notification.soundName = NSUserNotificationDefaultSoundName;
-    notification.identifier = identifier;
+    notification.identifier = fullIdentifier;
 
     NSUserNotificationCenter* center = [NSUserNotificationCenter defaultUserNotificationCenter];
     [center deliverNotification:notification];
 
-    DebugMsg("BGMUserNotifications::postLegacyNotification: Posted notification '%s'",
-             [identifier UTF8String]);
+    DebugMsg("BGMUserNotifications::postNotificationWithIdentifier: Posted notification '%s'",
+             [fullIdentifier UTF8String]);
 #pragma clang diagnostic pop
 }
 
