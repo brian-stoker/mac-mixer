@@ -233,11 +233,11 @@ CACFArray   BGM_ClientMap::CopyClientRelativeVolumesAsAppVolumes(CAVolumeCurve i
 
 void    BGM_ClientMap::CopyClientIntoAppVolumesArray(BGM_Client inClient, CAVolumeCurve inVolumeCurve, CACFArray& ioAppVolumes) const
 {
-    // Only include clients set to a non-default volume or pan
-    if(inClient.mRelativeVolume != 1.0 || inClient.mPanPosition != 0)
+    // Only include clients set to a non-default volume, pan, or output device
+    if(inClient.mRelativeVolume != 1.0 || inClient.mPanPosition != 0 || inClient.mOutputDeviceUID.IsValid())
     {
         CACFDictionary theAppVolume(false);
-        
+
         theAppVolume.AddSInt32(CFSTR(kBGMAppVolumesKey_ProcessID), inClient.mProcessID);
         theAppVolume.AddString(CFSTR(kBGMAppVolumesKey_BundleID), inClient.mBundleID.CopyCFString());
         // Reverse the volume conversion from SetClientsRelativeVolumes
@@ -245,7 +245,12 @@ void    BGM_ClientMap::CopyClientIntoAppVolumesArray(BGM_Client inClient, CAVolu
                                inVolumeCurve.ConvertScalarToRaw(inClient.mRelativeVolume / 4));
         theAppVolume.AddSInt32(CFSTR(kBGMAppVolumesKey_PanPosition),
                                inClient.mPanPosition);
-        
+        // Include output device UID if set
+        if(inClient.mOutputDeviceUID.IsValid())
+        {
+            theAppVolume.AddString(CFSTR(kBGMAppVolumesKey_OutputDeviceUID), inClient.mOutputDeviceUID.CopyCFString());
+        }
+
         ioAppVolumes.AppendDictionary(theAppVolume.GetDict());
     }
 }

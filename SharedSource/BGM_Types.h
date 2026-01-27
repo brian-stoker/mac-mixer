@@ -121,7 +121,10 @@ enum
     kAudioDeviceCustomPropertyAppVolumes                              = 'apvs',
     // A CFArray of CFBooleans indicating which of BGMDevice's controls are enabled. All controls are enabled
     // by default. This property is settable. See the array indices below for more info.
-    kAudioDeviceCustomPropertyEnabledOutputControls                   = 'bgct'
+    kAudioDeviceCustomPropertyEnabledOutputControls                   = 'bgct',
+    // A CFArray of CFDictionaries that each contain an app's pid, bundle ID and output device UID.
+    // Similar to kAudioDeviceCustomPropertyAppVolumes but for output device assignments.
+    kAudioDeviceCustomPropertyAppOutputDevices                        = 'aout'
 };
 
 // The number of silent/audible frames before BGMDriver will change kAudioDeviceCustomPropertyDeviceAudibleState
@@ -153,6 +156,8 @@ enum BGMDeviceAudibleState : SInt32
 #define kBGMAppVolumesKey_ProcessID         "pid"
 // The app's bundle ID as a CFString. May be omitted if kBGMAppVolumesKey_ProcessID is present.
 #define kBGMAppVolumesKey_BundleID          "bid"
+// The output device UID as a CFString. Empty string means "use default output device"
+#define kBGMAppVolumesKey_OutputDeviceUID   "oduid"
 
 // Volume curve range for app volumes
 #define kAppRelativeVolumeMaxRawValue   100
@@ -212,6 +217,12 @@ static const AudioObjectPropertyAddress kBGMAppVolumesAddress = {
 static const AudioObjectPropertyAddress kBGMEnabledOutputControlsAddress = {
     kAudioDeviceCustomPropertyEnabledOutputControls,
     kAudioObjectPropertyScopeOutput,
+    kAudioObjectPropertyElementMaster
+};
+
+static const AudioObjectPropertyAddress kBGMAppOutputDevicesAddress = {
+    kAudioDeviceCustomPropertyAppOutputDevices,
+    kAudioObjectPropertyScopeGlobal,
     kAudioObjectPropertyElementMaster
 };
 

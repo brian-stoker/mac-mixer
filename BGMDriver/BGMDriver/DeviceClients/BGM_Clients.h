@@ -96,6 +96,7 @@ public:
     
     Float32                             GetClientRelativeVolumeRT(UInt32 inClientID) const;
     SInt32                              GetClientPanPositionRT(UInt32 inClientID) const;
+    CACFString                          GetClientOutputDeviceUIDRT(UInt32 inClientID) const;
     
     // Copies the current and past clients into an array in the format expected for
     // kAudioDeviceCustomPropertyAppVolumes. (Except that CACFArray and CACFDictionary are used instead

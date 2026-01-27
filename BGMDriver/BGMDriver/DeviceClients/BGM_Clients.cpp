@@ -311,6 +311,13 @@ SInt32 BGM_Clients::GetClientPanPositionRT(UInt32 inClientID) const
     return (didGetClient ? theClient.mPanPosition : kAppPanCenterRawValue);
 }
 
+CACFString BGM_Clients::GetClientOutputDeviceUIDRT(UInt32 inClientID) const
+{
+    BGM_Client theClient;
+    bool didGetClient = mClientMap.GetClientRT(inClientID, &theClient);
+    return (didGetClient ? theClient.mOutputDeviceUID : CACFString(""));
+}
+
 bool    BGM_Clients::SetClientsRelativeVolumes(const CACFArray inAppVolumes)
 {
     bool didChangeAppVolumes = false;

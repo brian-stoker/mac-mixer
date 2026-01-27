@@ -74,7 +74,10 @@ public:
     
     // The client's pan position, in the range [-100, 100] where -100 is left and 100 is right
     SInt32                        mPanPosition = 0;
-    
+
+    // The output device UID for this client. Empty string means "use default output device"
+    CACFString                    mOutputDeviceUID;
+
 };
 
 #pragma clang assume_nonnull end

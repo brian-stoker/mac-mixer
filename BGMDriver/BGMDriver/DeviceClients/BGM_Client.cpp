@@ -49,5 +49,6 @@ void    BGM_Client::Copy(const BGM_Client& inClient)
     mIsMusicPlayer = inClient.mIsMusicPlayer;
     mRelativeVolume = inClient.mRelativeVolume;
     mPanPosition = inClient.mPanPosition;
+    mOutputDeviceUID = inClient.mOutputDeviceUID;
 }
 
