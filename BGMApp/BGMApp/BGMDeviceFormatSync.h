@@ -34,6 +34,11 @@
 // PublicUtility Includes
 #include "CAMutex.h"
 
+// STL Includes
+#include <map>
+#include <optional>
+#include <vector>
+
 // System Includes
 #include <CoreAudio/AudioHardware.h>
 
