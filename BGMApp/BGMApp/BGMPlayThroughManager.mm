@@ -29,6 +29,9 @@
 // PublicUtility Includes
 #include "CAMutex.h"
 
+// System Includes
+#include <mach/mach_time.h>
+
 
 #pragma mark Construction/Destruction
 
@@ -79,6 +82,10 @@ BGMPlayThrough* __nullable BGMPlayThroughManager::GetPlayThroughForOutputDevice(
     {
         DebugMsg("BGMPlayThroughManager::GetPlayThroughForOutputDevice: Returning existing instance for device %u",
                  deviceID);
+
+        // Update activity time to prevent idle cleanup
+        mLastActivityTime[deviceID] = mach_absolute_time();
+
         return it->second.get();
     }
 
@@ -104,6 +111,9 @@ BGMPlayThrough* __nullable BGMPlayThroughManager::GetPlayThroughForOutputDevice(
 
         // Store the instance in the map
         mPlayThroughInstances[deviceID] = std::move(newPlayThrough);
+
+        // Track activity time for idle detection
+        mLastActivityTime[deviceID] = mach_absolute_time();
 
         DebugMsg("BGMPlayThroughManager::GetPlayThroughForOutputDevice: Successfully created instance. "
                  "Active instances: %lu",
@@ -144,6 +154,9 @@ void    BGMPlayThroughManager::RemovePlayThroughForOutputDevice(const BGMAudioDe
         });
 
         mPlayThroughInstances.erase(it);
+
+        // Remove activity tracking
+        mLastActivityTime.erase(deviceID);
 
         DebugMsg("BGMPlayThroughManager::RemovePlayThroughForOutputDevice: Instance removed. "
                  "Active instances: %lu",
@@ -256,14 +269,18 @@ NSArray<NSNumber*>* BGMPlayThroughManager::GetActiveOutputDeviceIDs() const
 {
     CAMutex::Locker locker(mMapMutex);
 
-    NSMutableArray<NSNumber*>* deviceIDs = [NSMutableArray arrayWithCapacity:mPlayThroughInstances.size()];
+    // Performance: Use @autoreleasepool to ensure temporary NSNumber objects are
+    // deallocated promptly, reducing memory pressure in tight loops
+    @autoreleasepool {
+        NSMutableArray<NSNumber*>* deviceIDs = [NSMutableArray arrayWithCapacity:mPlayThroughInstances.size()];
 
-    for (const auto& pair : mPlayThroughInstances)
-    {
-        [deviceIDs addObject:@(pair.first)];
+        for (const auto& pair : mPlayThroughInstances)
+        {
+            [deviceIDs addObject:@(pair.first)];
+        }
+
+        return [deviceIDs copy];
     }
-
-    return [deviceIDs copy];
 }
 
 #endif
@@ -272,4 +289,100 @@ NSUInteger  BGMPlayThroughManager::GetActiveInstanceCount() const
 {
     CAMutex::Locker locker(mMapMutex);
     return static_cast<NSUInteger>(mPlayThroughInstances.size());
+}
+
+#pragma mark Performance Optimization
+
+void    BGMPlayThroughManager::CheckForIdleInstances()
+{
+    CAMutex::Locker locker(mMapMutex);
+
+    if (mPlayThroughInstances.empty())
+    {
+        return;
+    }
+
+    UInt64 now = mach_absolute_time();
+    mach_timebase_info_data_t info;
+    mach_timebase_info(&info);
+
+    // Convert timeout to mach_absolute_time units
+    UInt64 timeoutNsec = static_cast<UInt64>(kIdleTimeoutSeconds * NSEC_PER_SEC);
+
+    // Collect idle instances (don't modify map while iterating)
+    std::vector<AudioObjectID> idleDevices;
+
+    for (const auto& pair : mPlayThroughInstances)
+    {
+        AudioObjectID deviceID = pair.first;
+
+        // Never clean up the default playthrough instance
+        if (deviceID == mDefaultOutputDeviceID)
+        {
+            continue;
+        }
+
+        // Check if we have activity time for this device
+        auto activityIt = mLastActivityTime.find(deviceID);
+        if (activityIt == mLastActivityTime.end())
+        {
+            // No activity recorded, skip (shouldn't happen, but be safe)
+            continue;
+        }
+
+        // Calculate elapsed time since last activity
+        UInt64 elapsedTicks = now - activityIt->second;
+        UInt64 elapsedNsec = (elapsedTicks * info.numer) / info.denom;
+
+        if (elapsedNsec > timeoutNsec)
+        {
+            DebugMsg("BGMPlayThroughManager::CheckForIdleInstances: Device %u has been idle for %.1f seconds",
+                     deviceID, static_cast<Float64>(elapsedNsec) / NSEC_PER_SEC);
+            idleDevices.push_back(deviceID);
+        }
+    }
+
+    // Clean up idle instances
+    // Performance Note: This reduces CPU and memory usage by deallocating unused
+    // playthrough instances and their ring buffers after 30 seconds of inactivity.
+    for (AudioObjectID deviceID : idleDevices)
+    {
+        CleanupIdleInstance(deviceID);
+    }
+
+    if (!idleDevices.empty())
+    {
+        DebugMsg("BGMPlayThroughManager::CheckForIdleInstances: Cleaned up %lu idle instance(s). "
+                 "Active instances: %lu",
+                 static_cast<unsigned long>(idleDevices.size()),
+                 static_cast<unsigned long>(mPlayThroughInstances.size()));
+    }
+}
+
+void    BGMPlayThroughManager::CleanupIdleInstance(AudioObjectID deviceID)
+{
+    // mMapMutex should already be locked by caller
+
+    DebugMsg("BGMPlayThroughManager::CleanupIdleInstance: Cleaning up idle instance for device %u",
+             deviceID);
+
+    auto it = mPlayThroughInstances.find(deviceID);
+    if (it != mPlayThroughInstances.end())
+    {
+        // Deactivate and stop the playthrough before removing
+        BGMLogAndSwallowExceptionsMsg("BGMPlayThroughManager::CleanupIdleInstance",
+                                      "Deactivating playthrough",
+                                      [&]() {
+            if (it->second)
+            {
+                it->second->Deactivate();
+            }
+        });
+
+        // Remove the instance (unique_ptr will deallocate)
+        mPlayThroughInstances.erase(it);
+
+        // Remove activity tracking
+        mLastActivityTime.erase(deviceID);
+    }
 }
