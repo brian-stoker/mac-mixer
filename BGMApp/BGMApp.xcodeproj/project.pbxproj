@@ -37,6 +37,9 @@
 		1CBGMDEVDH2B000001 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMDeviceDisconnectionHandler.mm"; }; };
 		1CBGMDEVDH2B000002 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; };
 		1CBGMDEVDH2B000003 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; };
+		1CBGMDEVDH2B000001 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMDeviceDisconnectionHandler.mm"; }; };
+		1CBGMDEVDH2B000002 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; };
+		1CBGMDEVDH2B000003 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; };
 		1C1962E41BC94E15008A4DF7 /* CARingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C1962E21BC94E15008A4DF7 /* CARingBuffer.cpp */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-CARingBuffer.cpp"; }; };
 		1C1962E71BC94E91008A4DF7 /* BGMPlayThrough.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C1962E51BC94E91008A4DF7 /* BGMPlayThrough.cpp */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMPlayThrough.cpp"; }; };
 		1C1962F31BCABFC5008A4DF7 /* CAHALAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C1962EB1BCABFC5008A4DF7 /* CAHALAudioDevice.cpp */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-CAHALAudioDevice.cpp"; }; };
@@ -270,6 +273,8 @@
 		386EB1511F8A479A9192B8FF /* BGMAppOutputDevicePrefs.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMAppOutputDevicePrefs.mm; sourceTree = "<group>"; };
 		1CBGMODCTL1H000001 /* BGMAppOutputDeviceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMAppOutputDeviceController.h; sourceTree = "<group>"; };
 		1CBGMODCTL1M000001 /* BGMAppOutputDeviceController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMAppOutputDeviceController.mm; sourceTree = "<group>"; };
+		1CBGMDEVDH1H000001 /* BGMDeviceDisconnectionHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMDeviceDisconnectionHandler.h; sourceTree = "<group>"; };
+		1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMDeviceDisconnectionHandler.mm; sourceTree = "<group>"; };
 		1CBGMDEVDH1H000001 /* BGMDeviceDisconnectionHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMDeviceDisconnectionHandler.h; sourceTree = "<group>"; };
 		1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMDeviceDisconnectionHandler.mm; sourceTree = "<group>"; };
 		19FE70CF6C93F5007940CE91 /* BGMMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BGMMusic.h; path = "Music Players/BGMMusic.h"; sourceTree = "<group>"; };
@@ -714,6 +719,8 @@
 				386EB1511F8A479A9192B8FF /* BGMAppOutputDevicePrefs.mm */,
 				1CBGMODCTL1H000001 /* BGMAppOutputDeviceController.h */,
 				1CBGMODCTL1M000001 /* BGMAppOutputDeviceController.mm */,
+				1CBGMDEVDH1H000001 /* BGMDeviceDisconnectionHandler.h */,
+				1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */,
 				1CBGMDEVDH1H000001 /* BGMDeviceDisconnectionHandler.h */,
 				1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */,
 				1CD410D21F9EDDAD0070A094 /* BGMAppVolumesController.h */,
@@ -1221,6 +1228,7 @@
 				BC42475FE07F4DE3AC4BCF9F /* BGMAppOutputDevicePrefs.mm in Sources */,
 				1CBGMODCTL2B000001 /* BGMAppOutputDeviceController.mm in Sources */,
 				1CBGMDEVDH2B000001 /* BGMDeviceDisconnectionHandler.mm in Sources */,
+				1CBGMDEVDH2B000001 /* BGMDeviceDisconnectionHandler.mm in Sources */,
 				1CBGMDFS2B000001 /* BGMDeviceFormatSync.mm in Sources */,
 				1CBGMUSRN2B000001 /* BGMUserNotifications.mm in Sources */,
 				19FE7F77376562C179449013 /* BGMStatusBarItem.mm in Sources */,
@@ -1274,6 +1282,7 @@
 				1CD989551ECFFCFC0014BBBF /* BGMUserDefaults.m in Sources */,
 				F0D60EE601E14DD2844D62DE /* BGMAppOutputDevicePrefs.mm in Sources */,
 				1CBGMODCTL2B000002 /* BGMAppOutputDeviceController.mm in Sources */,
+				1CBGMDEVDH2B000002 /* BGMDeviceDisconnectionHandler.mm in Sources */,
 				1CBGMDEVDH2B000002 /* BGMDeviceDisconnectionHandler.mm in Sources */,
 				1CD989561ECFFCFC0014BBBF /* BGMXPCListener.mm in Sources */,
 				1CD989411ECFFCD10014BBBF /* BGMAppDelegate.mm in Sources */,
@@ -1382,6 +1391,7 @@
 				2743CA091D86D41C0089613B /* BGMUserDefaults.m in Sources */,
 				9A92ADC55C4F40B9B7606782 /* BGMAppOutputDevicePrefs.mm in Sources */,
 				1CBGMODCTL2B000003 /* BGMAppOutputDeviceController.mm in Sources */,
+				1CBGMDEVDH2B000003 /* BGMDeviceDisconnectionHandler.mm in Sources */,
 				1CBGMDEVDH2B000003 /* BGMDeviceDisconnectionHandler.mm in Sources */,
 				1C62FE5023D3EB2E00B9B68E /* MockAudioObjects.cpp in Sources */,
 				1CC6593E1F91DEB400B0CCDC /* BGMTermination.mm in Sources */,
