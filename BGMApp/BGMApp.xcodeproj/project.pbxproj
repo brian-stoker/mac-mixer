@@ -231,6 +231,9 @@
 		27FB8C311DE4758A0084DB9D /* BGM_Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27FB8C2E1DE468320084DB9D /* BGM_Utils.cpp */; };
 		9E129A412602AE620005851B /* BGMASApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E129A402602AE620005851B /* BGMASApplication.m */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMASApplication.m"; }; };
 		9E542C7026057FBA0016C0B5 /* BGMASApplication.m in Sources */ = {isa = PBXBuildFile; fileRef = 9E129A402602AE620005851B /* BGMASApplication.m */; };
+		1CBGMPTM2B000001 /* BGMPlayThroughManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMPTM1M000001 /* BGMPlayThroughManager.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMPlayThroughManager.mm"; }; };
+		1CBGMPTM2B000002 /* BGMPlayThroughManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMPTM1M000001 /* BGMPlayThroughManager.mm */; };
+		1CBGMPTM2B000003 /* BGMPlayThroughManager.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMPTM1M000001 /* BGMPlayThroughManager.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -445,6 +448,8 @@
 		27FB8C2E1DE468320084DB9D /* BGM_Utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = BGM_Utils.cpp; path = ../SharedSource/BGM_Utils.cpp; sourceTree = "<group>"; };
 		9E129A3F2602AE620005851B /* BGMASApplication.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = BGMASApplication.h; path = Scripting/BGMASApplication.h; sourceTree = "<group>"; };
 		9E129A402602AE620005851B /* BGMASApplication.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BGMASApplication.m; path = Scripting/BGMASApplication.m; sourceTree = "<group>"; };
+		1CBGMPTM1H000001 /* BGMPlayThroughManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMPlayThroughManager.h; sourceTree = "<group>"; };
+		1CBGMPTM1M000001 /* BGMPlayThroughManager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMPlayThroughManager.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -713,6 +718,8 @@
 				1C3D36701ED90E8600F98E66 /* BGMDeviceControlsList.cpp */,
 				1C1962E61BC94E91008A4DF7 /* BGMPlayThrough.h */,
 				1C1962E51BC94E91008A4DF7 /* BGMPlayThrough.cpp */,
+				1CBGMPTM1H000001 /* BGMPlayThroughManager.h */,
+				1CBGMPTM1M000001 /* BGMPlayThroughManager.mm */,
 				19FE72A176FD500FB4C1F5C6 /* BGMPlayThroughRTLogger.h */,
 				19FE7DE5E3BA0046ED2BC3C6 /* BGMPlayThroughRTLogger.cpp */,
 				19FE799A86A285DD9423D164 /* BGMStatusBarItem.h */,
@@ -1172,6 +1179,7 @@
 				1C1963011BCAC0F6008A4DF7 /* CACFString.cpp in Sources */,
 				9E129A412602AE620005851B /* BGMASApplication.m in Sources */,
 				1C1962E71BC94E91008A4DF7 /* BGMPlayThrough.cpp in Sources */,
+				1CBGMPTM2B000001 /* BGMPlayThroughManager.mm in Sources */,
 				1C8D8304204238DB00A838F2 /* BGMSwinsian.m in Sources */,
 				1C1962FA1BCAC061008A4DF7 /* CADebugMacros.cpp in Sources */,
 				27FB8C2F1DE468320084DB9D /* BGM_Utils.cpp in Sources */,
@@ -1230,6 +1238,7 @@
 				1CD989521ECFFCFC0014BBBF /* BGMOutputDeviceMenuSection.mm in Sources */,
 				1CD989531ECFFCFC0014BBBF /* BGMDeviceControlSync.cpp in Sources */,
 				1CD989541ECFFCFC0014BBBF /* BGMPlayThrough.cpp in Sources */,
+				1CBGMPTM2B000002 /* BGMPlayThroughManager.mm in Sources */,
 				1CD989551ECFFCFC0014BBBF /* BGMUserDefaults.m in Sources */,
 				F0D60EE601E14DD2844D62DE /* BGMAppOutputDevicePrefs.mm in Sources */,
 				1CD989561ECFFCFC0014BBBF /* BGMXPCListener.mm in Sources */,
@@ -1300,6 +1309,7 @@
 				1C8D830C2042DE9600A838F2 /* BGMGooglePlayMusicDesktopPlayer.m in Sources */,
 				1C3D36741ED90E8600F98E66 /* BGMDeviceControlsList.cpp in Sources */,
 				27FB8C301DE4758A0084DB9D /* BGMPlayThrough.cpp in Sources */,
+				1CBGMPTM2B000003 /* BGMPlayThroughManager.mm in Sources */,
 				27FB8C311DE4758A0084DB9D /* BGM_Utils.cpp in Sources */,
 				27FB8C071DD75D0A0084DB9D /* BGMHermes.m in Sources */,
 				2743CA211D86DE780089613B /* BGMDeviceControlSync.cpp in Sources */,
