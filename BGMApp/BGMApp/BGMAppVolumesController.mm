@@ -29,6 +29,8 @@
 #import "BGM_Types.h"
 #import "BGM_Utils.h"
 #import "BGMAppVolumes.h"
+#import "BGMAppOutputDeviceController.h"
+#import "BGMAppOutputDevicePrefs.h"
 
 // PublicUtility Includes
 #import "CACFArray.h"
@@ -212,6 +214,50 @@ forAppWithProcessID:(pid_t)processID
     audioDevices.bgmDevice.SetAppPanPosition(pan,
                                              processID,
                                              (__bridge_retained CFStringRef)bundleID);
+}
+
+- (void) setOutputDeviceUID:(NSString* __nullable)deviceUID
+        forAppWithBundleID:(NSString*)bundleID {
+    DebugMsg("BGMAppVolumesController::setOutputDeviceUID: Setting output device for %s to %s",
+             bundleID.UTF8String,
+             deviceUID ? deviceUID.UTF8String : "Default");
+
+    // Store the preference
+    [[BGMAppOutputDevicePrefs sharedInstance] setOutputDeviceUID:deviceUID forBundleID:bundleID];
+
+    // TODO: Notify BGMAppOutputDeviceController to update routing
+    // This will be done via BGMAppDelegate in a future task or phase
+    // For now, the preference is stored and will be applied on app restart or
+    // when BGMAppOutputDeviceController.applyStoredPreferences is called
+}
+
+- (void) moveAllAppsToOutputDevice:(NSString*)deviceUID {
+    // Iterate through all app volume menu items and set their output device
+    DebugMsg("BGMAppVolumesController::moveAllAppsToOutputDevice: Moving all apps to device %s",
+             deviceUID.UTF8String);
+
+    // Get all running applications
+    NSArray<NSRunningApplication*>* apps = [[NSWorkspace sharedWorkspace] runningApplications];
+
+    for (NSRunningApplication* app in apps) {
+        NSString* bundleID = app.bundleIdentifier;
+        if (bundleID) {
+            [self setOutputDeviceUID:deviceUID forAppWithBundleID:bundleID];
+        }
+    }
+
+    // Refresh the UI to show the new selections
+    [appVolumes refreshOutputDeviceLists];
+}
+
+- (void) resetAllAppsToDefault {
+    // Reset all apps to use the default output device
+    DebugMsg("BGMAppVolumesController::resetAllAppsToDefault: Resetting all apps to default");
+
+    [[BGMAppOutputDevicePrefs sharedInstance] resetAllMappings];
+
+    // Refresh the UI to show the new selections
+    [appVolumes refreshOutputDeviceLists];
 }
 
 #pragma mark KVO

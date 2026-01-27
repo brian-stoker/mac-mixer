@@ -111,6 +111,20 @@
                     <sliderCell key="cell" controlSize="mini" continuous="YES" state="on" alignment="left" minValue="-100" maxValue="100" tickMarkPosition="below" numberOfTickMarks="1" sliderType="linear" id="ccM-Mt-93g"/>
                     <accessibility description="Pan"/>
                 </slider>
+                <popUpButton toolTip="Output Device" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="BGM-od-pop" customClass="BGMAVM_OutputDevicePopUp">
+                    <rect key="frame" x="18" y="-3" width="120" height="18"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                    <popUpButtonCell key="cell" type="push" title="Default" bezelStyle="rounded" alignment="left" controlSize="mini" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="BGM-od-itm" id="BGM-od-cel">
+                        <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                        <font key="font" metaFont="miniSystem"/>
+                        <menu key="menu" title="OtherViews" id="BGM-od-mnu">
+                            <items>
+                                <menuItem title="Default" state="on" id="BGM-od-itm"/>
+                            </items>
+                        </menu>
+                    </popUpButtonCell>
+                    <accessibility description="Output Device"/>
+                </popUpButton>
                 <button tag="1" springLoaded="YES" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vTG-n6-GxY" customClass="BGMAVM_ShowMoreControlsButton">
                     <rect key="frame" x="243" y="27" width="16" height="17"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>

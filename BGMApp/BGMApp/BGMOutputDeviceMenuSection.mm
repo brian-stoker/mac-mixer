@@ -27,6 +27,9 @@
 #import "BGM_Utils.h"
 #import "BGM_Types.h"
 #import "BGMAudioDevice.h"
+#import "BGMAppVolumesController.h"
+#import "BGMAppOutputDevicePrefs.h"
+#import "BGMOutputDeviceList.h"
 
 // PublicUtility Includes
 #import "CAAutoDisposer.h"
@@ -47,6 +50,7 @@ static NSInteger const kOutputDeviceMenuItemTag = 5;
     NSMenu* bgmMenu;
     BGMAudioDeviceManager* audioDevices;
     BGMPreferredOutputDevices* preferredDevices;
+    BGMAppVolumesController* __nullable appVolumesController;
     NSMutableArray<NSMenuItem*>* outputDeviceMenuItems;
     // Called when a CoreAudio property has changed and we might need to update the menu. For
     // example, when a device is connected or disconnected.
@@ -59,17 +63,19 @@ static NSInteger const kOutputDeviceMenuItemTag = 5;
 
 - (instancetype) initWithBGMMenu:(NSMenu*)inBGMMenu
                     audioDevices:(BGMAudioDeviceManager*)inAudioDevices
-                preferredDevices:(BGMPreferredOutputDevices*)inPreferredDevices {
+                preferredDevices:(BGMPreferredOutputDevices*)inPreferredDevices
+              appVolumesController:(BGMAppVolumesController* __nullable)inAppVolumesController {
     if ((self = [super init])) {
         bgmMenu = inBGMMenu;
         audioDevices = inAudioDevices;
         preferredDevices = inPreferredDevices;
+        appVolumesController = inAppVolumesController;
         outputDeviceMenuItems = [NSMutableArray new];
 
         [self listenForDevicesAddedOrRemoved];
         [self populateBGMMenu];
     }
-    
+
     return self;
 }
 
@@ -265,30 +271,58 @@ static NSInteger const kOutputDeviceMenuItemTag = 5;
     if (!title) {
         title = (toolTip ? toolTip : @"");
     }
-    
-    NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:BGMNN(title)
+
+    // Get the device UID to check for app assignments
+    NSString* __nullable deviceUID = nil;
+    BGM_Utils::LogAndSwallowExceptions(BGMDbgArgs, [&] {
+        deviceUID = (__bridge_transfer NSString* __nullable)device.CopyDeviceUID();
+    });
+
+    // Count apps routed to this device
+    NSInteger appCount = 0;
+    if (deviceUID && appVolumesController) {
+        BGMAppOutputDevicePrefs* prefs = [BGMAppOutputDevicePrefs sharedInstance];
+        NSDictionary<NSString*, NSString*>* mappings = [prefs allOutputDeviceMappings];
+
+        // Create non-nullable copy for comparison
+        NSString* nonNullDeviceUID = BGMNN(deviceUID);
+        for (NSString* deviceUIDInMapping in mappings.allValues) {
+            if ([deviceUIDInMapping isEqualToString:nonNullDeviceUID]) {
+                appCount++;
+            }
+        }
+    }
+
+    // Append app count to title if any apps are routed to this device
+    NSString* displayTitle = title;
+    if (appCount > 0) {
+        displayTitle = [NSString stringWithFormat:@"%@ (%ld app%@)",
+                       title, (long)appCount, appCount == 1 ? @"" : @"s"];
+    }
+
+    NSMenuItem* item = [[NSMenuItem alloc] initWithTitle:BGMNN(displayTitle)
                                                   action:@selector(outputDeviceMenuItemSelected:)
                                            keyEquivalent:@""];
-    
+
     // Add the AirPlay icon to the labels of AirPlay devices.
     //
     // TODO: Test this with real hardware that supports AirPlay. (I don't have any.)
     BGM_Utils::LogAndSwallowExceptions(BGMDbgArgs, [&] {
         if (device.GetTransportType() == kAudioDeviceTransportTypeAirPlay) {
             item.image = [NSImage imageNamed:@"AirPlayIcon"];
-            
+
             // Make the icon a "template image" so it gets drawn colour-inverted when it's highlighted or
             // OS X is in dark mode.
             [item.image setTemplate:YES];
         }
     });
-    
+
     // The menu item should be selected if it's the menu item for the current output device. If the device
     // has data sources, only the menu item for the current data source should be selected.
     BOOL isSelected =
         [audioDevices isOutputDevice:device.GetObjectID()] &&
             (!dataSourceID || [audioDevices isOutputDataSource:[dataSourceID unsignedIntValue]]);
-    
+
     item.state = (isSelected ? NSOnState : NSOffState);
     item.toolTip = toolTip;
     item.target = self;
@@ -302,7 +336,14 @@ static NSInteger const kOutputDeviceMenuItemTag = 5;
         item.accessibilityIdentifier = @"output-device";
     }
 #endif
-    
+
+    // Store deviceUID in representedObject for bulk actions
+    if (appVolumesController != nil && deviceUID != nil) {
+        NSMutableDictionary* repr = [item.representedObject mutableCopy];
+        repr[@"deviceUID"] = deviceUID;
+        item.representedObject = repr;
+    }
+
     return item;
 }
 
@@ -317,19 +358,47 @@ static NSInteger const kOutputDeviceMenuItemTag = 5;
     });
 }
 
+// Called when per-app routing assignments change to update device indicators
+- (void) updateDeviceIndicators {
+    BGMOutputDeviceMenuSection* __weak weakSelf = self;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        BGM_Utils::LogAndSwallowExceptions(BGMDbgArgs, [&] {
+            // Repopulate the menu to update app counts on each device
+            [weakSelf populateBGMMenu];
+        });
+    });
+}
+
 - (void) outputDeviceMenuItemSelected:(NSMenuItem*)menuItem {
     DebugMsg("BGMOutputDeviceMenuSection::outputDeviceMenuItemSelected: '%s' menu item selected",
              [menuItem.title UTF8String]);
-    
+
     // Make sure the menu item is actually for an output device.
     if (![outputDeviceMenuItems containsObject:menuItem]) {
         return;
     }
-    
+
+    // Check if option key is held for bulk action
+    NSEventModifierFlags modifiers = [NSEvent modifierFlags];
+    BOOL optionKeyHeld = (modifiers & NSEventModifierFlagOption) != 0;
+
+    // If option key is held and we have app volumes controller, perform bulk action
+    if (optionKeyHeld && appVolumesController != nil) {
+        NSString* deviceUID = [menuItem representedObject][@"deviceUID"];
+        if (deviceUID) {
+            DebugMsg("BGMOutputDeviceMenuSection::outputDeviceMenuItemSelected: "
+                     "Option key held, moving all apps to device");
+            [appVolumesController moveAllAppsToOutputDevice:deviceUID];
+            [self updateDeviceIndicators];
+            return;
+        }
+    }
+
     // Change to the new output device.
     AudioDeviceID newDeviceID = [[menuItem representedObject][@"deviceID"] unsignedIntValue];
     id newDataSourceID = [menuItem representedObject][@"dataSourceID"];
-    
+
     BOOL changingDevice = ![audioDevices isOutputDevice:newDeviceID];
     BOOL changingDataSource =
         (newDataSourceID != [NSNull null]) &&
@@ -372,20 +441,39 @@ static NSInteger const kOutputDeviceMenuItemTag = 5;
     if (error) {
         // Couldn't change the output device, so show a warning. (No need to change the menu
         // selection back because it gets repopulated every time it's opened.)
-        
+
         // NSAlerts should only be shown on the main thread.
         dispatch_async(dispatch_get_main_queue(), ^{
             NSLog(@"Failed to set output device: %@", deviceName);
-            
+
             NSAlert* alert = [NSAlert new];
-            
+
             alert.messageText =
                 [NSString stringWithFormat:@"Failed to set %@ as the output device.", deviceName];
             alert.informativeText = @"This is probably a bug. Feel free to report it.";
-            
+
             [alert runModal];
         });
     }
+}
+
+#pragma mark Bulk Actions
+
+- (void) moveAllAppsToDevice:(NSMenuItem*)menuItem {
+    NSString* deviceUID = menuItem.representedObject;
+
+    if (!deviceUID || !appVolumesController) {
+        return;
+    }
+
+    DebugMsg("BGMOutputDeviceMenuSection::moveAllAppsToDevice: Moving all apps to device %s",
+             deviceUID.UTF8String);
+
+    // Delegate to the app volumes controller
+    [appVolumesController moveAllAppsToOutputDevice:deviceUID];
+
+    // Update the menu to reflect the new app counts
+    [self updateDeviceIndicators];
 }
 
 @end

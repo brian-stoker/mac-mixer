@@ -30,15 +30,21 @@
 
 #pragma clang assume_nonnull begin
 
+@class BGMAppVolumesController;
+
 @interface BGMOutputDeviceMenuSection : NSObject
 
 - (instancetype) initWithBGMMenu:(NSMenu*)inBGMMenu
                     audioDevices:(BGMAudioDeviceManager*)inAudioDevices
-                preferredDevices:(BGMPreferredOutputDevices*)inPreferredDevices;
+                preferredDevices:(BGMPreferredOutputDevices*)inPreferredDevices
+              appVolumesController:(BGMAppVolumesController* __nullable)inAppVolumesController;
 
 // To be called when BGMApp has been set to use a different output device. For example, when a new
 // device is connected and BGMPreferredOutputDevices decides BGMApp should switch to it.
 - (void) outputDeviceDidChange;
+
+// To be called when per-app routing assignments change to update device indicators
+- (void) updateDeviceIndicators;
 
 @end
 

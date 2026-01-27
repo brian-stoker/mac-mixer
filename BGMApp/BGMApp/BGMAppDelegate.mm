@@ -309,7 +309,8 @@ static NSString* const kOptShowDockIcon      = @"--show-dock-icon";
     outputDeviceMenuSection =
             [[BGMOutputDeviceMenuSection alloc] initWithBGMMenu:self.bgmMenu
                                                    audioDevices:audioDevices
-                                               preferredDevices:preferredOutputDevices];
+                                               preferredDevices:preferredOutputDevices
+                                             appVolumesController:appVolumes];
     [audioDevices setOutputDeviceMenuSection:outputDeviceMenuSection];
 
     // Preferences submenu.

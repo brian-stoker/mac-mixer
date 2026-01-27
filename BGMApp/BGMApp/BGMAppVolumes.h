@@ -48,6 +48,9 @@
 - (BGMAppVolumeAndPan) getVolumeAndPanForApp:(NSRunningApplication*)app;
 - (void) setVolumeAndPan:(BGMAppVolumeAndPan)volumeAndPan forApp:(NSRunningApplication*)app;
 
+// Refresh the output device list in all app volume menu items
+- (void) refreshOutputDeviceLists;
+
 @end
 
 // Protocol for the UI custom classes
@@ -81,6 +84,13 @@
 @interface BGMAVM_PanSlider : NSSlider <BGMAppVolumeMenuItemSubview>
 
 - (void) setPanPosition:(int)panPosition;
+
+@end
+
+@interface BGMAVM_OutputDevicePopUp : NSPopUpButton <BGMAppVolumeMenuItemSubview>
+
+- (void) setSelectedDeviceUID:(NSString* __nullable)deviceUID;
+- (void) populateDeviceList;
 
 @end
 

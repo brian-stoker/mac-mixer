@@ -26,6 +26,8 @@
 // Local Includes
 #import "BGM_Types.h"
 #import "BGM_Utils.h"
+#import "BGMOutputDeviceMenuSection.h"
+#import "BGMAppVolumes.h"
 
 // PublicUtility Includes
 #import "CAException.h"
@@ -47,6 +49,10 @@
     // Listener block for HAL property notifications
     AudioObjectPropertyListenerBlock mListenerBlock;
     BOOL mIsListening;
+
+    // UI components to notify when routing changes
+    BGMOutputDeviceMenuSection* __weak mOutputDeviceMenuSection;
+    BGMAppVolumes* __weak mAppVolumes;
 }
 
 - (instancetype)initWithPlayThroughManager:(BGMPlayThroughManager*)manager
@@ -140,6 +146,9 @@
         DebugMsg("BGMAppOutputDeviceController::setOutputDeviceUID: Set device %s for bundle %s",
                  deviceUID ? [deviceUID UTF8String] : "(default)",
                  [bundleID UTF8String]);
+
+        // Notify UI components to update their indicators
+        [self notifyUIComponentsOfRoutingChange];
     }
     @catch (NSException* exception)
     {
@@ -210,6 +219,16 @@
 
     Block_release(mListenerBlock);
     mIsListening = NO;
+}
+
+- (void)setOutputDeviceMenuSection:(BGMOutputDeviceMenuSection* __nullable)menuSection
+{
+    mOutputDeviceMenuSection = menuSection;
+}
+
+- (void)setAppVolumes:(BGMAppVolumes* __nullable)appVolumes
+{
+    mAppVolumes = appVolumes;
 }
 
 #pragma mark - Private Methods
@@ -307,6 +326,29 @@
     {
         NSLog(@"BGMAppOutputDeviceController::ensurePlayThroughForDeviceUID: Exception: %@", exception);
     }
+}
+
+- (void)notifyUIComponentsOfRoutingChange
+{
+    // Update the output device menu section to show app counts
+    // Assign to strong variable to avoid weak variable access warning
+    BGMOutputDeviceMenuSection* outputDeviceMenuSection = mOutputDeviceMenuSection;
+    if (outputDeviceMenuSection)
+    {
+        [outputDeviceMenuSection updateDeviceIndicators];
+    }
+
+    // Update the app volumes UI to show device labels
+    // Assign to strong variable to avoid weak variable access warning
+    BGMAppVolumes* appVolumes = mAppVolumes;
+    if (appVolumes)
+    {
+        // The app volumes will be refreshed through the refreshOutputDeviceLists method
+        // which updates the app name labels with device indicators
+        [appVolumes refreshOutputDeviceLists];
+    }
+
+    DebugMsg("BGMAppOutputDeviceController::notifyUIComponentsOfRoutingChange: UI components notified");
 }
 
 @end

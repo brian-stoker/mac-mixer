@@ -39,6 +39,9 @@
 
 #pragma clang assume_nonnull begin
 
+@class BGMOutputDeviceMenuSection;
+@class BGMAppVolumes;
+
 @interface BGMAppOutputDeviceController : NSObject
 
 /*!
@@ -88,6 +91,22 @@
  This removes the HAL property listener.
  */
 - (void)stopListeningForPropertyChanges;
+
+/*!
+ Set the output device menu section to be notified when routing changes.
+ This allows the menu to update its device indicators.
+
+ @param menuSection The output device menu section instance.
+ */
+- (void)setOutputDeviceMenuSection:(BGMOutputDeviceMenuSection* __nullable)menuSection;
+
+/*!
+ Set the app volumes UI to be notified when routing changes.
+ This allows the app volume menu items to update their device labels.
+
+ @param appVolumes The app volumes UI instance.
+ */
+- (void)setAppVolumes:(BGMAppVolumes* __nullable)appVolumes;
 
 @end
 

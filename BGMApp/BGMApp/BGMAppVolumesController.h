@@ -54,6 +54,14 @@ forAppWithProcessID:(pid_t)processID
 - (BGMAppVolumeAndPan) getVolumeAndPanForApp:(NSRunningApplication *)app;
 - (void) setVolumeAndPan:(BGMAppVolumeAndPan)volumeAndPan forApp:(NSRunningApplication*)app;
 
+// Set the output device for an app. Pass nil for deviceUID to use the default output device.
+- (void) setOutputDeviceUID:(NSString* __nullable)deviceUID
+        forAppWithBundleID:(NSString*)bundleID;
+
+// Bulk output device assignment
+- (void) moveAllAppsToOutputDevice:(NSString*)deviceUID;
+- (void) resetAllAppsToDefault;
+
 @end
 
 #pragma clang assume_nonnull end

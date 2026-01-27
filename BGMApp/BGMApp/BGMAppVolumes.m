@@ -30,6 +30,8 @@
 #import "BGM_Types.h"
 #import "BGM_Utils.h"
 #import "BGMAppDelegate.h"
+#import "BGMOutputDeviceList.h"
+#import "BGMAppOutputDevicePrefs.h"
 
 // PublicUtility Includes
 #import "CADebugMacros.h"
@@ -350,6 +352,40 @@ static NSString* const kMoreAppsMenuTitle          = @"More Apps";
     [moreAppsMenu removeAllItems];
 }
 
+- (void) refreshOutputDeviceLists {
+    // Iterate through all app volume menu items and refresh their output device popups
+    NSInteger lastAppVolumeMenuItemIndex = [self lastMenuItemIndex] - 2;
+
+    // Refresh items in the main menu
+    for (NSInteger i = [self firstMenuItemIndex]; i <= lastAppVolumeMenuItemIndex; i++) {
+        NSMenuItem* item = [bgmMenu itemAtIndex:i];
+        [self refreshOutputDevicePopUpInMenuItem:item];
+    }
+
+    // Refresh items in the More Apps menu
+    for (NSInteger i = 0; i < [moreAppsMenu numberOfItems]; i++) {
+        NSMenuItem* item = [moreAppsMenu itemAtIndex:i];
+        [self refreshOutputDevicePopUpInMenuItem:item];
+    }
+}
+
+- (void) refreshOutputDevicePopUpInMenuItem:(NSMenuItem*)menuItem {
+    for (NSView* subview in menuItem.view.subviews) {
+        if ([subview isKindOfClass:[BGMAVM_OutputDevicePopUp class]]) {
+            BGMAVM_OutputDevicePopUp* popup = (BGMAVM_OutputDevicePopUp*)subview;
+            [popup populateDeviceList];
+
+            // Restore the current selection
+            NSRunningApplication* app = menuItem.representedObject;
+            if (app && app.bundleIdentifier) {
+                NSString* __nullable currentDeviceUID = [[BGMAppOutputDevicePrefs sharedInstance]
+                    outputDeviceUIDForBundleID:BGMNN(app.bundleIdentifier)];
+                [popup setSelectedDeviceUID:currentDeviceUID];
+            }
+        }
+    }
+}
+
 @end
 
 #pragma mark Custom Classes (IB)
@@ -386,8 +422,37 @@ static NSString* const kMoreAppsMenuTitle          = @"More Apps";
            controller:(BGMAppVolumesController*)ctrl
              menuItem:(NSMenuItem*)menuItem {
     #pragma unused (ctx, ctrl, menuItem)
-    
+
     NSString* name = app.localizedName ? (NSString*)app.localizedName : @"";
+
+    // Check if this app has a custom output device assignment
+    NSString* __nullable bundleID = app.bundleIdentifier;
+    if (bundleID && bundleID.length > 0) {
+        BGMAppOutputDevicePrefs* prefs = [BGMAppOutputDevicePrefs sharedInstance];
+        // BGMNN macro makes bundleID non-nullable for the method call
+        NSString* __nullable assignedDeviceUID = [prefs outputDeviceUIDForBundleID:BGMNN(bundleID)];
+
+        if (assignedDeviceUID && assignedDeviceUID.length > 0) {
+            // Look up the device name
+            BGMOutputDeviceList* deviceList = [BGMOutputDeviceList sharedInstance];
+            // BGMNN macro makes assignedDeviceUID non-nullable for the method call
+            BGMOutputDevice* __nullable device = [deviceList deviceWithUID:BGMNN(assignedDeviceUID)];
+
+            if (device) {
+                if (device.isConnected) {
+                    // Show device name for connected devices
+                    name = [NSString stringWithFormat:@"%@ [%@]", name, device.name];
+                } else {
+                    // Show "(Disconnected)" for disconnected devices
+                    name = [NSString stringWithFormat:@"%@ [Disconnected]", name];
+                }
+            } else {
+                // Device not found - might have been removed
+                name = [NSString stringWithFormat:@"%@ [Unknown Device]", name];
+            }
+        }
+    }
+
     self.stringValue = name;
 }
 
@@ -499,15 +564,15 @@ static NSString* const kMoreAppsMenuTitle          = @"More Apps";
            controller:(BGMAppVolumesController*)ctrl
              menuItem:(NSMenuItem*)menuItem {
     #pragma unused (ctx, menuItem)
-    
+
     controller = ctrl;
-    
+
     self.target = self;
     self.action = @selector(appPanPositionChanged);
-    
+
     appProcessID = app.processIdentifier;
     appBundleID = app.bundleIdentifier;
-    
+
     self.minValue = kAppPanLeftRawValue;
     self.maxValue = kAppPanRightRawValue;
 
@@ -525,11 +590,111 @@ static NSString* const kMoreAppsMenuTitle          = @"More Apps";
 
 - (void) appPanPositionChanged {
     // TODO: This (sending updates to the driver) should probably be rate-limited. It uses a fair bit of CPU for me.
-    
+
     DebugMsg("BGMAppVolumes::appPanPositionChanged: App pan position for %s changed to %d", appBundleID.UTF8String, self.intValue);
 
     // The values from our sliders are in [kAppPanLeftRawValue, kAppPanRightRawValue] already.
     [controller setPanPosition:self.intValue forAppWithProcessID:appProcessID bundleID:appBundleID];
+}
+
+@end
+
+@implementation BGMAVM_OutputDevicePopUp {
+    NSString* __nullable appBundleID;
+    BGMAppVolumesController* controller;
+}
+
+- (void) setUpWithApp:(NSRunningApplication*)app
+              context:(BGMAppVolumes*)ctx
+           controller:(BGMAppVolumesController*)ctrl
+             menuItem:(NSMenuItem*)menuItem {
+    #pragma unused (ctx, menuItem)
+
+    controller = ctrl;
+    appBundleID = app.bundleIdentifier;
+
+    self.target = self;
+    self.action = @selector(outputDeviceChanged);
+
+    // Populate the popup button with available output devices
+    [self populateDeviceList];
+
+    // Set the current selection based on preferences
+    if (appBundleID) {
+        NSString* __nullable currentDeviceUID = [[BGMAppOutputDevicePrefs sharedInstance]
+            outputDeviceUIDForBundleID:BGMNN(appBundleID)];
+        [self setSelectedDeviceUID:currentDeviceUID];
+    }
+
+    if ([self respondsToSelector:@selector(setAccessibilityTitle:)]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wpartial-availability"
+        self.accessibilityTitle = [NSString stringWithFormat:@"Output device for %@", [app localizedName]];
+#pragma clang diagnostic pop
+    }
+}
+
+- (void) populateDeviceList {
+    [self removeAllItems];
+
+    // Add "Default" option at the top
+    [self addItemWithTitle:@"Default"];
+    [[self itemAtIndex:0] setRepresentedObject:[NSNull null]];
+
+    // Add separator
+    [[self menu] addItem:[NSMenuItem separatorItem]];
+
+    // Add available output devices
+    BGMOutputDeviceList* deviceList = [BGMOutputDeviceList sharedInstance];
+    NSArray<BGMOutputDevice*>* devices = [deviceList availableOutputDevices];
+
+    for (BGMOutputDevice* device in devices) {
+        [self addItemWithTitle:device.name];
+        [[self lastItem] setRepresentedObject:device.uid];
+    }
+}
+
+- (void) setSelectedDeviceUID:(NSString* __nullable)deviceUID {
+    if (deviceUID == nil) {
+        // Select "Default" option
+        [self selectItemAtIndex:0];
+        return;
+    }
+
+    // Find and select the item with matching device UID
+    for (NSInteger i = 0; i < [self numberOfItems]; i++) {
+        NSMenuItem* item = [self itemAtIndex:i];
+        id representedObject = [item representedObject];
+
+        if ([representedObject isKindOfClass:[NSString class]]) {
+            NSString* objStr = (NSString*)representedObject;
+            if ([objStr isEqualToString:BGMNN(deviceUID)]) {
+                [self selectItemAtIndex:i];
+                return;
+            }
+        }
+    }
+
+    // If device not found, select "Default"
+    [self selectItemAtIndex:0];
+}
+
+- (void) outputDeviceChanged {
+    NSMenuItem* selectedItem = [self selectedItem];
+    id representedObject = [selectedItem representedObject];
+
+    NSString* deviceUID = nil;
+    if ([representedObject isKindOfClass:[NSString class]]) {
+        deviceUID = (NSString*)representedObject;
+    }
+
+    DebugMsg("BGMAppVolumes::outputDeviceChanged: Output device for %s changed to %s",
+             appBundleID ? appBundleID.UTF8String : "(null)",
+             deviceUID ? deviceUID.UTF8String : "Default");
+
+    if (appBundleID) {
+        [controller setOutputDeviceUID:deviceUID forAppWithBundleID:BGMNN(appBundleID)];
+    }
 }
 
 @end
