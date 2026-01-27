@@ -40,6 +40,7 @@
 
 // System Includes
 #include <CoreAudio/AudioHardware.h>
+#include <mach/mach_time.h>
 
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
@@ -54,6 +55,9 @@ class BGMPlayThroughManager
 public:
     // Maximum number of concurrent output devices
     static const NSUInteger kMaxConcurrentOutputs = 8;
+
+    // Idle timeout for cleaning up unused playthrough instances (30 seconds)
+    static constexpr NSTimeInterval kIdleTimeoutSeconds = 30.0;
 
 public:
                         BGMPlayThroughManager(BGMAudioDevice inInputDevice);
@@ -123,7 +127,21 @@ public:
      */
     NSUInteger          GetActiveInstanceCount() const;
 
+    /*!
+     Check for idle playthrough instances and clean them up if they've been
+     inactive for longer than kIdleTimeoutSeconds. The default playthrough
+     instance is never cleaned up.
+     */
+    void                CheckForIdleInstances();
+
 private:
+    /*!
+     Clean up an idle playthrough instance for the specified device.
+
+     @param deviceID The device whose playthrough instance should be cleaned up.
+     */
+    void                CleanupIdleInstance(AudioObjectID deviceID);
+
     BGMAudioDevice      mInputDevice;
 
     // Map from output device ID to BGMPlayThrough instance
@@ -131,6 +149,10 @@ private:
 
     // The default output device ID (for unassigned apps)
     AudioObjectID       mDefaultOutputDeviceID;
+
+    // Track last activity time for each playthrough instance (mach_absolute_time)
+    // Performance: Used to identify idle instances for cleanup after 30s
+    std::map<AudioObjectID, UInt64> mLastActivityTime;
 
     // Mutex for thread-safe access to the map
     mutable CAMutex     mMapMutex { "PlayThrough Manager map" };

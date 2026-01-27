@@ -34,6 +34,9 @@
 		1CBGMODCTL2B000001 /* BGMAppOutputDeviceController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMODCTL1M000001 /* BGMAppOutputDeviceController.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMAppOutputDeviceController.mm"; }; };
 		1CBGMODCTL2B000002 /* BGMAppOutputDeviceController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMODCTL1M000001 /* BGMAppOutputDeviceController.mm */; };
 		1CBGMODCTL2B000003 /* BGMAppOutputDeviceController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMODCTL1M000001 /* BGMAppOutputDeviceController.mm */; };
+		1CBGMDEVDH2B000001 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMDeviceDisconnectionHandler.mm"; }; };
+		1CBGMDEVDH2B000002 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; };
+		1CBGMDEVDH2B000003 /* BGMDeviceDisconnectionHandler.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */; };
 		1C1962E41BC94E15008A4DF7 /* CARingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C1962E21BC94E15008A4DF7 /* CARingBuffer.cpp */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-CARingBuffer.cpp"; }; };
 		1C1962E71BC94E91008A4DF7 /* BGMPlayThrough.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C1962E51BC94E91008A4DF7 /* BGMPlayThrough.cpp */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMPlayThrough.cpp"; }; };
 		1C1962F31BCABFC5008A4DF7 /* CAHALAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C1962EB1BCABFC5008A4DF7 /* CAHALAudioDevice.cpp */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-CAHALAudioDevice.cpp"; }; };
@@ -240,6 +243,9 @@
 		1CBGMDFS2B000001 /* BGMDeviceFormatSync.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDFS1M000001 /* BGMDeviceFormatSync.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMDeviceFormatSync.mm"; }; };
 		1CBGMDFS2B000002 /* BGMDeviceFormatSync.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDFS1M000001 /* BGMDeviceFormatSync.mm */; };
 		1CBGMDFS2B000003 /* BGMDeviceFormatSync.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMDFS1M000001 /* BGMDeviceFormatSync.mm */; };
+		1CBGMUSRN2B000001 /* BGMUserNotifications.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMUSRN1M000001 /* BGMUserNotifications.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMUserNotifications.mm"; }; };
+		1CBGMUSRN2B000002 /* BGMUserNotifications.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMUSRN1M000001 /* BGMUserNotifications.mm */; };
+		1CBGMUSRN2B000003 /* BGMUserNotifications.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1CBGMUSRN1M000001 /* BGMUserNotifications.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -264,6 +270,8 @@
 		386EB1511F8A479A9192B8FF /* BGMAppOutputDevicePrefs.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMAppOutputDevicePrefs.mm; sourceTree = "<group>"; };
 		1CBGMODCTL1H000001 /* BGMAppOutputDeviceController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMAppOutputDeviceController.h; sourceTree = "<group>"; };
 		1CBGMODCTL1M000001 /* BGMAppOutputDeviceController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMAppOutputDeviceController.mm; sourceTree = "<group>"; };
+		1CBGMDEVDH1H000001 /* BGMDeviceDisconnectionHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMDeviceDisconnectionHandler.h; sourceTree = "<group>"; };
+		1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMDeviceDisconnectionHandler.mm; sourceTree = "<group>"; };
 		19FE70CF6C93F5007940CE91 /* BGMMusic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BGMMusic.h; path = "Music Players/BGMMusic.h"; sourceTree = "<group>"; };
 		19FE7179EBFA116F3861E79D /* BGMVolumeChangeListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BGMVolumeChangeListener.cpp; sourceTree = "<group>"; };
 		19FE71BCD79E7246F7345C16 /* BGMThreadSafetyAnalysis.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMThreadSafetyAnalysis.h; sourceTree = "<group>"; };
@@ -460,6 +468,8 @@
 		1CBGMPTM1M000001 /* BGMPlayThroughManager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMPlayThroughManager.mm; sourceTree = "<group>"; };
 		1CBGMDFS1H000001 /* BGMDeviceFormatSync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMDeviceFormatSync.h; sourceTree = "<group>"; };
 		1CBGMDFS1M000001 /* BGMDeviceFormatSync.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMDeviceFormatSync.mm; sourceTree = "<group>"; };
+		1CBGMUSRN1H000001 /* BGMUserNotifications.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMUserNotifications.h; sourceTree = "<group>"; };
+		1CBGMUSRN1M000001 /* BGMUserNotifications.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMUserNotifications.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -704,6 +714,8 @@
 				386EB1511F8A479A9192B8FF /* BGMAppOutputDevicePrefs.mm */,
 				1CBGMODCTL1H000001 /* BGMAppOutputDeviceController.h */,
 				1CBGMODCTL1M000001 /* BGMAppOutputDeviceController.mm */,
+				1CBGMDEVDH1H000001 /* BGMDeviceDisconnectionHandler.h */,
+				1CBGMDEVDH1M000001 /* BGMDeviceDisconnectionHandler.mm */,
 				1CD410D21F9EDDAD0070A094 /* BGMAppVolumesController.h */,
 				1CD410D31F9EDDAD0070A094 /* BGMAppVolumesController.mm */,
 				1CED616A1C316E1A002CAFCF /* BGMAudioDeviceManager.h */,
@@ -734,6 +746,8 @@
 				1CBGMPTM1M000001 /* BGMPlayThroughManager.mm */,
 				1CBGMDFS1H000001 /* BGMDeviceFormatSync.h */,
 				1CBGMDFS1M000001 /* BGMDeviceFormatSync.mm */,
+				1CBGMUSRN1H000001 /* BGMUserNotifications.h */,
+				1CBGMUSRN1M000001 /* BGMUserNotifications.mm */,
 				19FE72A176FD500FB4C1F5C6 /* BGMPlayThroughRTLogger.h */,
 				19FE7DE5E3BA0046ED2BC3C6 /* BGMPlayThroughRTLogger.cpp */,
 				19FE799A86A285DD9423D164 /* BGMStatusBarItem.h */,
@@ -1206,6 +1220,9 @@
 				1C1465B81BCC3A73003AEFE6 /* BGMAutoPauseMusic.mm in Sources */,
 				BC42475FE07F4DE3AC4BCF9F /* BGMAppOutputDevicePrefs.mm in Sources */,
 				1CBGMODCTL2B000001 /* BGMAppOutputDeviceController.mm in Sources */,
+				1CBGMDEVDH2B000001 /* BGMDeviceDisconnectionHandler.mm in Sources */,
+				1CBGMDFS2B000001 /* BGMDeviceFormatSync.mm in Sources */,
+				1CBGMUSRN2B000001 /* BGMUserNotifications.mm in Sources */,
 				19FE7F77376562C179449013 /* BGMStatusBarItem.mm in Sources */,
 				19FE719951725A698A419CBA /* BGMVolumeChangeListener.cpp in Sources */,
 				19FE72566BCEB11BD1F3D487 /* BGMMusic.m in Sources */,
@@ -1257,6 +1274,7 @@
 				1CD989551ECFFCFC0014BBBF /* BGMUserDefaults.m in Sources */,
 				F0D60EE601E14DD2844D62DE /* BGMAppOutputDevicePrefs.mm in Sources */,
 				1CBGMODCTL2B000002 /* BGMAppOutputDeviceController.mm in Sources */,
+				1CBGMDEVDH2B000002 /* BGMDeviceDisconnectionHandler.mm in Sources */,
 				1CD989561ECFFCFC0014BBBF /* BGMXPCListener.mm in Sources */,
 				1CD989411ECFFCD10014BBBF /* BGMAppDelegate.mm in Sources */,
 				1CD989341ECFFC9E0014BBBF /* BGM_Utils.cpp in Sources */,
@@ -1276,6 +1294,8 @@
 				1CCC4F621E584100008053E4 /* BGMAppUITests.mm in Sources */,
 				1C2FC31C1EC7238A00A76592 /* BGMASOutputDevice.mm in Sources */,
 				1C2FC3151EC706E000A76592 /* BGMAppDelegate+AppleScript.mm in Sources */,
+				1CBGMDFS2B000002 /* BGMDeviceFormatSync.mm in Sources */,
+				1CBGMUSRN2B000002 /* BGMUserNotifications.mm in Sources */,
 				19FE7921FD1B6C037429ECA4 /* BGMStatusBarItem.mm in Sources */,
 				19FE7DFF63F69E77C53BF95E /* BGMVolumeChangeListener.cpp in Sources */,
 				19FE7B32E1214BA0E8166A9E /* BGMMusic.m in Sources */,
@@ -1329,6 +1349,8 @@
 				27FB8C311DE4758A0084DB9D /* BGM_Utils.cpp in Sources */,
 				27FB8C071DD75D0A0084DB9D /* BGMHermes.m in Sources */,
 				2743CA211D86DE780089613B /* BGMDeviceControlSync.cpp in Sources */,
+				1CBGMDFS2B000003 /* BGMDeviceFormatSync.mm in Sources */,
+				1CBGMUSRN2B000003 /* BGMUserNotifications.mm in Sources */,
 				1CE03A59239B56740036908D /* BGMDebugLoggingMenuItem.m in Sources */,
 				2743CA0C1D86D7FA0089613B /* CACFArray.cpp in Sources */,
 				1C837DDA1F6AA1F2004B1E60 /* BGMOutputVolumeMenuItem.mm in Sources */,
@@ -1360,6 +1382,7 @@
 				2743CA091D86D41C0089613B /* BGMUserDefaults.m in Sources */,
 				9A92ADC55C4F40B9B7606782 /* BGMAppOutputDevicePrefs.mm in Sources */,
 				1CBGMODCTL2B000003 /* BGMAppOutputDeviceController.mm in Sources */,
+				1CBGMDEVDH2B000003 /* BGMDeviceDisconnectionHandler.mm in Sources */,
 				1C62FE5023D3EB2E00B9B68E /* MockAudioObjects.cpp in Sources */,
 				1CC6593E1F91DEB400B0CCDC /* BGMTermination.mm in Sources */,
 				2743CA011D86D3CB0089613B /* BGMMusicPlayers.mm in Sources */,

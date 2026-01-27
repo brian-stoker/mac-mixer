@@ -50,6 +50,10 @@
     AudioObjectPropertyListenerBlock mListenerBlock;
     BOOL mIsListening;
 
+    // Listener block for system default device changes
+    AudioObjectPropertyListenerBlock mDefaultDeviceListenerBlock;
+    BOOL mIsListeningForDefaultDevice;
+
     // UI components to notify when routing changes
     BGMOutputDeviceMenuSection* __weak mOutputDeviceMenuSection;
     BGMAppVolumes* __weak mAppVolumes;
@@ -67,6 +71,7 @@
         mDeviceList = deviceList;
         mBGMDevice = bgmDevice;
         mIsListening = NO;
+        mIsListeningForDefaultDevice = NO;
     }
 
     return self;
@@ -75,6 +80,7 @@
 - (void)dealloc
 {
     [self stopListeningForPropertyChanges];
+    [self stopListeningForDefaultDeviceChanges];
 }
 
 - (void)applyStoredPreferences
@@ -231,6 +237,84 @@
     mAppVolumes = appVolumes;
 }
 
+- (void)startListeningForDefaultDeviceChanges
+{
+    if (mIsListeningForDefaultDevice)
+    {
+        // Already listening
+        return;
+    }
+
+    // Create listener block for system default device changes
+    AudioObjectPropertyListenerBlock block = ^(UInt32 inNumberAddresses,
+                                               const AudioObjectPropertyAddress* _Nonnull inAddresses) {
+        // Check if this is a default output device property change
+        for (UInt32 i = 0; i < inNumberAddresses; i++)
+        {
+            if (inAddresses[i].mSelector == kAudioHardwarePropertyDefaultOutputDevice)
+            {
+                DebugMsg("BGMAppOutputDeviceController: Default output device changed");
+                [self handleDefaultDeviceChanged];
+                break;
+            }
+        }
+    };
+
+    mDefaultDeviceListenerBlock = (__bridge AudioObjectPropertyListenerBlock)Block_copy((__bridge void*)block);
+
+    // Register the listener with the HAL for the system object
+    CAPropertyAddress address(kAudioHardwarePropertyDefaultOutputDevice,
+                             kAudioObjectPropertyScopeGlobal,
+                             kAudioObjectPropertyElementMaster);
+
+    BGM_Utils::LogAndSwallowExceptions(BGMDbgArgs, [&] {
+        OSStatus err = AudioObjectAddPropertyListenerBlock(kAudioObjectSystemObject,
+                                                           &address,
+                                                           dispatch_get_main_queue(),
+                                                           mDefaultDeviceListenerBlock);
+        if (err == noErr)
+        {
+            mIsListeningForDefaultDevice = YES;
+            DebugMsg("BGMAppOutputDeviceController::startListeningForDefaultDeviceChanges: Registered listener");
+        }
+        else
+        {
+            NSLog(@"BGMAppOutputDeviceController::startListeningForDefaultDeviceChanges: Failed to register listener (error %d)", err);
+        }
+    });
+}
+
+- (void)stopListeningForDefaultDeviceChanges
+{
+    if (!mIsListeningForDefaultDevice)
+    {
+        return;
+    }
+
+    // Deregister the listener
+    CAPropertyAddress address(kAudioHardwarePropertyDefaultOutputDevice,
+                             kAudioObjectPropertyScopeGlobal,
+                             kAudioObjectPropertyElementMaster);
+
+    BGM_Utils::LogAndSwallowExceptions(BGMDbgArgs, [&] {
+        OSStatus err = AudioObjectRemovePropertyListenerBlock(kAudioObjectSystemObject,
+                                                              &address,
+                                                              dispatch_get_main_queue(),
+                                                              mDefaultDeviceListenerBlock);
+        if (err == noErr)
+        {
+            DebugMsg("BGMAppOutputDeviceController::stopListeningForDefaultDeviceChanges: Unregistered listener");
+        }
+        else
+        {
+            NSLog(@"BGMAppOutputDeviceController::stopListeningForDefaultDeviceChanges: Failed to unregister listener (error %d)", err);
+        }
+    });
+
+    Block_release(mDefaultDeviceListenerBlock);
+    mIsListeningForDefaultDevice = NO;
+}
+
 #pragma mark - Private Methods
 
 - (void)sendMappingsToBGMDriver:(NSDictionary<NSString*, NSString*>*)mappings
@@ -349,6 +433,123 @@
     }
 
     DebugMsg("BGMAppOutputDeviceController::notifyUIComponentsOfRoutingChange: UI components notified");
+}
+
+- (void)handleDefaultDeviceChanged
+{
+    @try
+    {
+        // Get the new default output device ID
+        AudioObjectID newDefaultDeviceID = [self getSystemDefaultOutputDeviceID];
+
+        if (newDefaultDeviceID == kAudioObjectUnknown)
+        {
+            NSLog(@"BGMAppOutputDeviceController::handleDefaultDeviceChanged: Failed to get new default device");
+            return;
+        }
+
+        // Check if the new default device is BGMDevice (prevent feedback loop)
+        if ([self isBGMDevice:newDefaultDeviceID])
+        {
+            DebugMsg("BGMAppOutputDeviceController::handleDefaultDeviceChanged: New default is BGMDevice, ignoring");
+            return;
+        }
+
+        // Look up the device UID by searching through available devices
+        BGMOutputDevice* device = nil;
+        NSArray<BGMOutputDevice*>* devices = [mDeviceList availableOutputDevices];
+        for (BGMOutputDevice* d in devices)
+        {
+            if (d.deviceID == newDefaultDeviceID)
+            {
+                device = d;
+                break;
+            }
+        }
+
+        if (!device)
+        {
+            NSLog(@"BGMAppOutputDeviceController::handleDefaultDeviceChanged: Device not found for ID %u",
+                  newDefaultDeviceID);
+            return;
+        }
+
+        NSString* newDefaultDeviceUID = device.uid;
+        DebugMsg("BGMAppOutputDeviceController::handleDefaultDeviceChanged: New default device: %s (%u)",
+                 [newDefaultDeviceUID UTF8String], newDefaultDeviceID);
+
+        // Update the primary BGMPlayThrough instance to use the new default device
+        BGMAudioDevice outputDevice(newDefaultDeviceID);
+        mPlayThroughManager->SetDefaultPlayThrough(outputDevice);
+
+        // Ensure a playthrough instance exists for the new default device
+        [self ensurePlayThroughForDeviceUID:newDefaultDeviceUID];
+
+        // Apps assigned to "Default" (nil/empty UID) automatically follow the system default
+        // No need to update mappings - BGMDriver will route based on current default
+        // But we should notify UI components to update their display
+        [self notifyUIComponentsOfRoutingChange];
+
+        DebugMsg("BGMAppOutputDeviceController::handleDefaultDeviceChanged: Successfully updated to new default");
+    }
+    @catch (NSException* exception)
+    {
+        NSLog(@"BGMAppOutputDeviceController::handleDefaultDeviceChanged: Exception: %@", exception);
+    }
+}
+
+- (AudioObjectID)getSystemDefaultOutputDeviceID
+{
+    AudioObjectID deviceID = kAudioObjectUnknown;
+    UInt32 size = sizeof(deviceID);
+
+    CAPropertyAddress address(kAudioHardwarePropertyDefaultOutputDevice,
+                             kAudioObjectPropertyScopeGlobal,
+                             kAudioObjectPropertyElementMaster);
+
+    OSStatus err = AudioObjectGetPropertyData(kAudioObjectSystemObject,
+                                              &address,
+                                              0,
+                                              NULL,
+                                              &size,
+                                              &deviceID);
+
+    if (err != noErr)
+    {
+        NSLog(@"BGMAppOutputDeviceController::getSystemDefaultOutputDeviceID: Failed to get default device (error %d)", err);
+        return kAudioObjectUnknown;
+    }
+
+    return deviceID;
+}
+
+- (BOOL)isBGMDevice:(AudioObjectID)deviceID
+{
+    @try
+    {
+        // Compare against BGMDevice's object ID
+        if (deviceID == mBGMDevice.GetObjectID())
+        {
+            return YES;
+        }
+
+        // Also check the device UID to be thorough
+        NSArray<BGMOutputDevice*>* devices = [mDeviceList availableOutputDevices];
+        for (BGMOutputDevice* device in devices)
+        {
+            if (device.deviceID == deviceID && [device.uid isEqualToString:@kBGMDeviceUID])
+            {
+                return YES;
+            }
+        }
+
+        return NO;
+    }
+    @catch (NSException* exception)
+    {
+        NSLog(@"BGMAppOutputDeviceController::isBGMDevice: Exception: %@", exception);
+        return NO;
+    }
 }
 
 @end

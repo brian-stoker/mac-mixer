@@ -93,6 +93,18 @@
 - (void)stopListeningForPropertyChanges;
 
 /*!
+ Start listening for system default output device changes.
+ This sets up a HAL property listener for kAudioHardwarePropertyDefaultOutputDevice.
+ */
+- (void)startListeningForDefaultDeviceChanges;
+
+/*!
+ Stop listening for system default output device changes.
+ This removes the HAL property listener.
+ */
+- (void)stopListeningForDefaultDeviceChanges;
+
+/*!
  Set the output device menu section to be notified when routing changes.
  This allows the menu to update its device indicators.
 
