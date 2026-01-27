@@ -59,6 +59,7 @@
 		1C4699471BD5C0E400F78043 /* BGMiTunes.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C4699461BD5C0E400F78043 /* BGMiTunes.m */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMiTunes.m"; }; };
 		1C46994E1BD7694C00F78043 /* BGMDeviceControlSync.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1C46994C1BD7694C00F78043 /* BGMDeviceControlSync.cpp */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMDeviceControlSync.cpp"; }; };
 		1C4D1A1D217C7D6400A1ACD0 /* BGMPreferredOutputDevices.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1C4D1A1C217C7D6400A1ACD0 /* BGMPreferredOutputDevices.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMPreferredOutputDevices.mm"; }; };
+		824E4F8188E424147A524501 /* BGMOutputDeviceList.mm in Sources */ = {isa = PBXBuildFile; fileRef = CDA146A88F837C7CD221475D /* BGMOutputDeviceList.mm */; settings = {COMPILER_FLAGS = "-frandom-seed=BGMApp-BGMOutputDeviceList.mm"; }; };
 		1C4D1A1E217C7D6400A1ACD0 /* BGMPreferredOutputDevices.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1C4D1A1C217C7D6400A1ACD0 /* BGMPreferredOutputDevices.mm */; };
 		1C50FF631EC9F4490031A6EA /* BGMAudioDevice.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1CF5423A1EAAEE4300445AD8 /* BGMAudioDevice.cpp */; };
 		1C533C7A1EED28B700270802 /* uninstall.sh in Resources */ = {isa = PBXBuildFile; fileRef = 1C533C791EED28B700270802 /* uninstall.sh */; };
@@ -315,6 +316,8 @@
 		1C46994D1BD7694C00F78043 /* BGMDeviceControlSync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BGMDeviceControlSync.h; sourceTree = "<group>"; };
 		1C4D1A1B217C7D6400A1ACD0 /* BGMPreferredOutputDevices.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BGMPreferredOutputDevices.h; sourceTree = "<group>"; };
 		1C4D1A1C217C7D6400A1ACD0 /* BGMPreferredOutputDevices.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMPreferredOutputDevices.mm; sourceTree = "<group>"; };
+		4FCA4E9C9C37FA6DD622DECF /* BGMOutputDeviceList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BGMOutputDeviceList.h; sourceTree = "<group>"; };
+		CDA146A88F837C7CD221475D /* BGMOutputDeviceList.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = BGMOutputDeviceList.mm; sourceTree = "<group>"; };
 		1C533C791EED28B700270802 /* uninstall.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = uninstall.sh; path = ../../uninstall.sh; sourceTree = "<group>"; };
 		1C533C7F1EF532CA00270802 /* _uninstall-non-interactive.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "_uninstall-non-interactive.sh"; sourceTree = "<group>"; };
 		1C62FE4523D3EB2D00B9B68E /* MockAudioObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MockAudioObject.cpp; path = BGMAppTests/UnitTests/Mocks/MockAudioObject.cpp; sourceTree = SOURCE_ROOT; };
@@ -683,6 +686,8 @@
 				1CED616B1C316E1A002CAFCF /* BGMAudioDeviceManager.mm */,
 				1C4D1A1B217C7D6400A1ACD0 /* BGMPreferredOutputDevices.h */,
 				1C4D1A1C217C7D6400A1ACD0 /* BGMPreferredOutputDevices.mm */,
+				4FCA4E9C9C37FA6DD622DECF /* BGMOutputDeviceList.h */,
+				CDA146A88F837C7CD221475D /* BGMOutputDeviceList.mm */,
 				1CF5423B1EAAEE4300445AD8 /* BGMAudioDevice.h */,
 				1CF5423A1EAAEE4300445AD8 /* BGMAudioDevice.cpp */,
 				1CACCF381F3175AD007F86CA /* BGMBackgroundMusicDevice.h */,
@@ -1128,6 +1133,7 @@
 				1C1962F41BCABFC5008A4DF7 /* CAHALAudioObject.cpp in Sources */,
 				27F7D4901D2483B100821C4B /* BGMDecibel.m in Sources */,
 				1C4D1A1D217C7D6400A1ACD0 /* BGMPreferredOutputDevices.mm in Sources */,
+				824E4F8188E424147A524501 /* BGMOutputDeviceList.mm in Sources */,
 				1C2336DA1BEAB6E7004C1C4E /* BGMMusicPlayer.m in Sources */,
 				1C1962F61BCABFC5008A4DF7 /* CAHALAudioSystemObject.cpp in Sources */,
 				1CC1DF821BE5068A00FB8FE4 /* CACFDictionary.cpp in Sources */,
