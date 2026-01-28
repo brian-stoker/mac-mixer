@@ -117,7 +117,7 @@
                     <popUpButtonCell key="cell" type="push" title="Default" bezelStyle="rounded" alignment="left" controlSize="mini" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="BGM-od-itm" id="BGM-od-cel">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="miniSystem"/>
-                        <menu key="menu" title="OtherViews" id="BGM-od-mnu">
+                        <menu key="menu" title="" id="BGM-od-mnu">
                             <items>
                                 <menuItem title="Default" state="on" id="BGM-od-itm"/>
                             </items>
